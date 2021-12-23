@@ -1,0 +1,143 @@
+<html>
+    <head>
+		<meta charset="utf-8">
+       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+       <meta name="description" content="">
+       <meta name="generator" content="Jekyll v4.1.1">
+       <title>User Membership</title>
+
+       <link href="css/custom-formio/theme.less.css" rel="stylesheet">
+       <link href="css/font-awesome.min.css" rel="stylesheet">
+	   <link href="css/bootstrap.min.css" rel="stylesheet">
+       <link href="css/custom-formio/formio.full.min.css" rel="stylesheet">
+	   <link href="css/sanitize.css" rel="stylesheet">
+	   <link href="css/main.css" rel="stylesheet">
+	   
+       <script src='js/lodash/lodash.core.min.js'></script>
+	   <script src='js/lodash/lodash.min.js'></script>
+	   <script src='js/jquery-3.5.1.min.js'></script>
+	   <script src='js/attrchange.js'></script>
+       <script src='js/bootstrap.bundle.min.js'></script>
+	   <script src='js/investigate/formio.full.min.js'></script>
+	   <script src='js/main.js'></script>
+	   
+       <script>
+		var clientId;
+		var env = "qa";
+		
+		$(document).ready(function () {
+			
+			var docvars = getUrlVars();
+			
+			var URL = "https://" + env + ".servicedx.com/filing/dynamicForm/userMembership";
+			//var URL = "http://localhost:9104/filing/dynamicForm/userMembership";
+			
+			var info = getFormInfo(URL, docvars);
+			console.log('info',info);
+			//alert("user membership editorial" + JSON.stringify(docvars));
+			Formio.createForm(document.getElementById('builder'), info.formDefinition)
+				.then(function (form) {
+					var userObj = {};
+					if(info.formData != null){
+						userObj = editObject(info.formData);
+					}
+					userObj["page"] = docvars.page;
+					form.submission = { data: userObj };
+					
+					$('.card-pricing').click(function () {
+						var schema = getScheme(this.id, info.schemeDefinition);
+						userObj["scheme"] = schema;
+						var fees = schema.schemeActivePrice;
+						if(schema.schemeBaseAmount && schema.schemeType == "ONBOARD"){
+							fees = schema.schemeActivePrice + schema.schemeBaseAmount;
+						}
+						userObj["schemeId"] = schema.schemeId;
+						userObj["fees"] = fees;
+						userObj["newMemberFees"] = membershipFees(schema);
+						form.submission = { data: userObj };
+						console.log(form._data);
+					});
+					
+					console.log(userObj);
+					form.nosubmit = true;
+					form.on('submit', function (submission) {
+						$('#formSubmit').attr('disabled','disabled');
+						
+						var userObject = submission.data;
+
+						delete userObject["submit"];
+						delete userObject["confirmPassword"];
+						delete userObject["hobbies"];
+						delete userObject["sameAsPresentAddress"];
+						delete userObject["phoneNo"];
+						delete userObject["secondPhoneNo"];
+						delete userObject["countrys"];
+						delete userObject["secondaryCountrys"];
+						delete userObject["page"];
+						delete userObject["anniversaryDate1"];
+						delete userObject["birthDate1"];
+						delete userObject["addressProofPic1"];
+						delete userObject["specialSkills"];
+						delete userObject["maritalStatus1"];
+						delete userObject["others"];
+						
+						console.log("Request : " + JSON.stringify(userObject))
+
+						var handlerName =  'userMembershipHandlerWithArgs';
+						
+						var formURL = URLBuilder(URL, docvars, info.formData.hasUser, info.formData.hasMember);
+						
+						var responce = fetchRequest(form, formURL, userObject, handlerName);
+					});
+
+					form.on('redraw', () => {
+						form.triggerChange();
+					});
+				});
+			
+		});
+		
+		function editObject(json){
+			return json;
+		}
+		
+       </script>
+	   <link href="css/poopins/poopins.css" rel="stylesheet">
+    </head>
+    <body style="padding:10px;background-color: #dde0e0;">
+       <div id="wrapper">
+          <div id="initScreen" style="display: block;">
+             <div class="section" id="a67a329f1c344dfd887b3efc8a413ed3">
+				<span class="loader"></span>
+                <div class="screen" id="survey-screen-1" style="background-color: rgb(245, 249, 250);">
+                   <div class="main-container">
+                      <div id="survey-section" class="">
+                         <div class="survey-sub-screen multiplechoice-question-component" id="survey-sub-screen-half-n-half">
+                            <div class="head">
+                            </div>
+                            <div class="question-answer-row" id="section" style="padding-left:10px;padding-right:10px;">
+                               <div class="question-answer-cell">
+							      <div class='card-bg' id='membership-card'></div>
+                                  <div class='' id='builder'></div>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                      <div class="footer-row">
+                         <div class="footer hide-submit">
+                            <div id="logo-container">
+                               <img style="width:50px;height:40px;" id="logo" src="https://static.wixstatic.com/media/eaa914_9cf3646c1306425db2dc5191490521f2~mv2.png/v1/crop/x_0,y_21,w_340,h_274/fill/w_121,h_96,al_c,q_85,usm_0.66_1.00_0.01/logo_edited.webp" alt="Logo" class="">
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+             </div>
+          </div>
+          <div id="main-error-container" class="hidden">
+             <div id="error-message">Something went wrong. Please retry.</div>
+             <div id="retry-button">Retry</div>
+          </div>
+       </div>
+    </body>
+ </html>

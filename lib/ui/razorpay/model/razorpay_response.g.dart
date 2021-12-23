@@ -1,0 +1,88 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'razorpay_response.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+RazorpayResponse _$RazorpayResponseFromJson(Map<String, dynamic> json) {
+  return RazorpayResponse(
+    accountId: json['accountId'] as String,
+    active: json['active'] as bool,
+    amountRefunded: json['amountRefunded'] as String,
+    attempts: json['attempts'] as String,
+    comments: json['comments'] as String,
+    createdBy: json['createdBy'] as String,
+    createdOn: json['createdOn'] as String,
+    currency: json['currency'] as String,
+    imageURL: json['imageURL'] as String,
+    merchantName: json['merchantName'] as String,
+    modifiedBy: json['modifiedBy'] as String,
+    modifiedOn: json['modifiedOn'] as String,
+    notes: json['notes'] as String,
+    offerId: json['offerId'] as String,
+    orderId: json['orderId'] as String,
+    payeeEmail: json['payeeEmail'] as String,
+    payeeName: json['payeeName'] as String,
+    payeePhoneNumber: json['payeePhoneNumber'] as String,
+    paymentDescription: json['paymentDescription'] as String,
+    paymentId: json['paymentId'] as String,
+    paymentMode: json['paymentMode'] as String,
+    reasonCode: json['reasonCode'] as String,
+    reasonDescription: json['reasonDescription'] as String,
+    refundStatus: json['refundStatus'] as String,
+    requestId: json['requestId'] as String,
+    secretKey: json['secretKey'] as String,
+    signature: json['signature'] as String,
+    theme: json['theme'] as String,
+    totalAmount: json['totalAmount'] as double,
+    transactionDate: json['transactionDate'] as String,
+    transactionGateway: json['transactionGateway'] as String,
+    transactionId: json['transactionId'] as String,
+    transactionSource: json['transactionSource'] as String,
+    transactionStatus: json['transactionStatus'] as String,
+    transactionType: json['transactionType'] as String,
+    userName: json['userName'] as String,
+  );
+}
+
+Map<String, dynamic> _$RazorpayResponseToJson(RazorpayResponse instance) =>
+    <String, dynamic>{
+      'accountId': instance.accountId,
+      'active': instance.active,
+      'amountRefunded': instance.amountRefunded,
+      'attempts': instance.attempts,
+      'comments': instance.comments,
+      'createdBy': instance.createdBy,
+      'createdOn': instance.createdOn,
+      'currency': instance.currency,
+      'imageURL': instance.imageURL,
+      'merchantName': instance.merchantName,
+      'modifiedBy': instance.modifiedBy,
+      'modifiedOn': instance.modifiedOn,
+      'notes': instance.notes,
+      'offerId': instance.offerId,
+      'orderId': instance.orderId,
+      'payeeEmail': instance.payeeEmail,
+      'payeeName': instance.payeeName,
+      'payeePhoneNumber': instance.payeePhoneNumber,
+      'paymentDescription': instance.paymentDescription,
+      'paymentId': instance.paymentId,
+      'paymentMode': instance.paymentMode,
+      'reasonCode': instance.reasonCode,
+      'reasonDescription': instance.reasonDescription,
+      'refundStatus': instance.refundStatus,
+      'requestId': instance.requestId,
+      'secretKey': instance.secretKey,
+      'signature': instance.signature,
+      'theme': instance.theme,
+      'totalAmount': instance.totalAmount,
+      'transactionDate': instance.transactionDate,
+      'transactionGateway': instance.transactionGateway,
+      'transactionId': instance.transactionId,
+      'transactionSource': instance.transactionSource,
+      'transactionStatus': instance.transactionStatus,
+      'transactionType': instance.transactionType,
+      'userName': instance.userName,
+    };

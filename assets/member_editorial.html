@@ -1,0 +1,207 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="generator" content="Jekyll v4.1.1">
+    <title>User Membership</title>
+
+    <link href="css/custom-formio/theme.less.css" rel="stylesheet">
+    <link href="css/font-awesome.min.css" rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/custom-formio/formio.full.min.css" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
+
+    <script src='js/lodash/lodash.core.min.js'></script>
+    <script src='js/lodash/lodash.min.js'></script>
+    <script src='js/jquery-3.5.1.min.js'></script>
+    <script src='js/attrchange.js'></script>
+    <script src='js/investigate/selectize.js'></script>
+    <script src='js/bootstrap.bundle.min.js'></script>
+    <script src='js/pooper/popper.min.js'></script>
+    <script src='js/investigate/formio.full.min.js'></script>
+    <script src='js/main.js'></script>
+
+    <script>
+        var env = getQueryVariable("envCode");
+        var eventId = getQueryVariable("eventId");
+        var clientId = getQueryVariable("clientId");
+        var sessionName = getQueryVariable("sessionName");
+        if (env.trim().toLowerCase() === "pd") {
+            env = "prod";
+        }
+        var department = getQueryVariable("department")
+        var username = getQueryVariable("username")
+        var eventName = getQueryVariable("eventName")
+        $(document).ready(async function() {
+            // window.addEventListener("flutterInAppWebViewPlatformReady", function (event) {
+            // console.log(event)
+            window.platformReady = true;
+            // });
+            console.log("Inside the ready state")
+            var formDefinition = {}
+            var res = await fetch("https://" + env + ".servicedx.com/eventfeed/event/" + department + "?event_name=" + eventName)
+                // var eventData = await fetch("https://" + env + ".servicedx.com/eventfeed/invitee?department_name=" + department + "&user_name=" + username + "&event_id=" + eventId)
+                // eventData = await eventData.json();
+            var data = await res.json();
+            console.log("After the api request")
+            var componentsData = data.eventRegisterFormDefn
+            console.log(data.eventRegisterFormDefn)
+            var finalData = componentsData;
+            formDefinition = JSON.parse(finalData);
+            const eventData = {}
+            console.log("After parseing the api request " + eventId)
+            Formio.createForm(document.getElementById('builder'), formDefinition)
+                .then(async function(form) {
+                    form.nosubmit = true;
+                    form.on('submit', async function(submission) {
+                        var userObject = submission.data;
+                        membershipId = userObject.membershipId;
+                        console.log("=========> Membership Id", membershipId)
+                        if (membershipId.length > 0) {
+                            var validateMembershipURL = `https://${env}.servicedx.com/filing/membership/form/membership_id/${membershipId}`
+                            var membershipValidateData = await fetch(validateMembershipURL)
+                                // console.log(membershipValidateData.status.toString()==="500")
+                            if (membershipValidateData.status.toString() === "500") {
+                                alert("Invalid Memebrship ID")
+                                console.log("Inside membership if")
+                            } else {
+                                console.log("Inside the membership else")
+                                eventData.status = "REGISTERED"
+                                eventData.eventRegisterSubmissionData = JSON.stringify(userObject)
+                                var handlerName = 'eventHandlerArgs';
+                                var paymentUrl = `https://${env}.servicedx.com/admin/miscellous-scheme-detailList/?sourceModuleId=${eventId}&department_name=${department}`
+                                var paymentDetails = await fetch(paymentUrl);
+                                paymentDetails = await paymentDetails.json()
+                                let price
+                                if (paymentDetails[0].schemeFeeType.trim() === "USER") {
+                                    price = paymentDetails[0].schemeActivePrice
+                                } else {
+                                    price = paymentDetails[1].schemeActivePrice
+                                }
+                                var formURL = `https://${env}.servicedx.com/eventfeed/invitee/${department}/${username}/${eventId}/${sessionName}`
+                                var responseData = {}
+
+                                var data = await fetch(formURL, {
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    method: "POST",
+                                    body: JSON.stringify(eventData)
+                                }).then(data => {
+                                    if (data.ok) {
+                                        responseData.status = data.status
+                                        data.json()
+                                    } else {
+                                        responseData.status = data.status
+                                    }
+                                }).then(data => {
+                                    responseData.price = price
+
+                                    window.flutter_inappwebview.callHandler(handlerName, JSON.stringify(responseData));
+                                }).catch(e => {
+                                    console.log(e)
+                                    window.flutter_inappwebview.callHandler(handlerName, JSON.stringify(responseData));
+                                })
+                            }
+                        } else {
+                            eventData.status = "REGISTERED"
+                            eventData.eventRegisterSubmissionData = JSON.stringify(userObject)
+                            var handlerName = 'eventHandlerArgs';
+                            var paymentUrl = `https://${env}.servicedx.com/admin/miscellous-scheme-detailList?department_name=${department}&sourceModuleId=${eventId}`
+                            var paymentDetails = await fetch(paymentUrl);
+                            paymentDetails = await paymentDetails.json()
+                            let price;
+                            var formURL = `https://${env}.servicedx.com/eventfeed/invitee/${department}/${username}/${eventId}/${sessionName}`
+                            var responseData = {}
+
+                            var data = await fetch(formURL, {
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                method: "POST",
+                                body: JSON.stringify(eventData)
+                            }).then(data => {
+                                if (data.ok) {
+                                    responseData.status = data.status
+                                    data.json()
+                                } else {
+                                    responseData.status = data.status
+                                }
+                            }).then(data => {
+                                if (paymentDetails[0].schemeFeeType.trim() === "NON-USER") {
+                                    responseData.price = paymentDetails[0].schemeActivePrice
+                                } else {
+                                    responseData.price = paymentDetails[1].schemeActivePrice
+                                }
+                                window.flutter_inappwebview.callHandler(handlerName, JSON.stringify(responseData));
+                            }).catch(e => {
+                                console.log(e)
+                                window.flutter_inappwebview.callHandler(handlerName, JSON.stringify(responseData));
+                            })
+                        }
+
+                        // var responce = fetchRequest(form, formURL, userObject, handlerName); // Making an REST Call URL if not going to use please change this functionality accordingly
+                    });
+
+                    form.on('redraw', () => {
+                        form.triggerChange();
+                    });
+                });
+
+        });
+
+        function getQueryVariable(variable) {
+            var query = window.location.search.substring(1);
+            var vars = query.split('&');
+            for (var i = 0; i < vars.length; i++) {
+                var pair = vars[i].split('=');
+                if (decodeURIComponent(pair[0]) == variable) {
+                    return decodeURIComponent(pair[1]);
+                }
+            }
+            console.log('Query variable %s not found', variable);
+        }
+    </script>
+    <link href="css/poopins/poopins.css" rel="stylesheet">
+</head>
+
+<body style="padding:10px;background-color: #dde0e0;">
+    <div id="wrapper">
+        <div id="initScreen" style="display: block;">
+            <div class="section" id="a67a329f1c344dfd887b3efc8a413ed3">
+                <span class="loader"></span>
+                <div class="screen" id="survey-screen-1" style="background-color: rgb(245, 249, 250);">
+                    <div class="main-container">
+                        <div id="survey-section" class="">
+                            <div class="survey-sub-screen multiplechoice-question-component" id="survey-sub-screen-half-n-half">
+                                <div class="head">
+                                </div>
+                                <div class="question-answer-row" id="section" style="padding-left:10px;padding-right:10px;">
+                                    <div class="question-answer-cell">
+                                        <div id='membership-card'></div>
+                                        <div id='builder'></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="footer-row">
+                            <div class="footer hide-submit">
+                                <div id="logo-container">
+                                    <img style="width:50px;height:40px;" id="logo" src="https://static.wixstatic.com/media/eaa914_9cf3646c1306425db2dc5191490521f2~mv2.png/v1/crop/x_0,y_21,w_340,h_274/fill/w_121,h_96,al_c,q_85,usm_0.66_1.00_0.01/logo_edited.webp" alt="Logo" class="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="main-error-container" class="hidden">
+            <div id="error-message">Something went wrong. Please retry.</div>
+            <div id="retry-button">Retry</div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,236 @@
+body {
+  font-family: 'Poppins', sans-serif!important;
+  overflow-x: hidden!important;
+}
+
+.card-header {
+  padding: 5px !important;
+  margin-bottom: 0 !important;
+  background-color: rgba(0, 0, 0, .03) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, .125) !important;
+}
+
+.formio-component,
+.form-control,
+.select2-selection__rendered {
+  font-size: 15px!important;
+}
+
+.select2-selection__rendered,
+.select2-selection--multiple {
+  background-color: #e8f0fa!important;
+}
+
+.select2-selection--multiple {
+  padding-left: 4px!important;
+}
+
+.select2-container--bootstrap4 .select2-selection {
+  border: 1px solid #d3dae8!important;
+}
+
+.card-body {
+  padding: 5px 10px!important;
+}
+
+.select2-selection__choice__remove {
+  border: none !important;
+  background: transparent !important;
+  color: #fff!important;
+}
+
+.select2-search__field {
+  background: transparent !important;
+}
+
+.select2-selection__choice__display {
+  font-size: 13px!important;
+  color: #fff!important;
+}
+
+.head {
+  margin-top: 15px !important;
+}
+
+.bd-placeholder-img {
+  font-size: 1.125rem !important;
+  text-anchor: middle !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+.select2-selection {
+  overflow: hidden !important;
+}
+
+.select2-selection__rendered {
+  white-space: normal !important;
+  word-break: break-all !important;
+}
+
+@media (min-width: 768px) {
+  .bd-placeholder-img-lg {
+    font-size: 3.5rem !important;
+  }
+}
+
+.btn-status {
+  font-size: 0.8rem !important;
+}
+
+.rounded {
+  border-radius: 1.25rem!important;
+}
+
+.auto-width {
+  width: auto!important;
+}
+
+.invalid-feedback {
+  display: block !important;
+  color: #dc3545 !important;
+}
+
+.alert {
+  display: none !important;
+}
+
+.form-control {
+	background-color: #e8f0fa!important;
+}		  
+.form-control.is-invalid {
+  border-color: #dc3545 !important;
+}
+
+.formio-component {
+  background-color: transparent !important;
+}
+
+.formio-error-wrapper,
+.formio-warning-wrapper {
+  padding: 0em !important;
+}
+
+.form-control:disabled,
+.form-control[readonly] {
+  background-color: #e9ecef !important;
+  opacity: 1 !important;
+  cursor: not-allowed !important;
+}
+
+.btn-primary.disabled,
+.btn-primary:disabled {
+  color: #000;
+  background-color: #e9ecef !important;
+  border-color: rgba(0, 0, 0, 0);
+  cursor: not-allowed;
+}
+
+.disable {
+  background-color: #e9ecef !important;
+  opacity: 1 !important;
+  cursor: not-allowed !important;
+}
+
+.submit-fail:disabled{
+   color: #fff;
+   background-color: #bd2130 !important;
+   border-color: #b21f2d;
+}
+
+.field-required:after {
+  content: " *" !important;
+  color: transparent !important;													  
+}
+
+.form-control.is-invalid,
+.was-validated .form-control:invalid {
+  background-position: right calc(.375em + 0.8875rem) center !important;
+}
+
+.choices[data-type*=select-one] .choices__button {
+  margin-right: 35px;
+}
+
+.bg-primary {
+  background-color: #154877!important;
+}
+
+i.fa.fa-remove {
+  display: contents !important;
+  font-size: 25px !important;
+  color: #006af9 !important;
+  font-weight: normal !important;
+}
+
+.btn-success.disabled,
+.btn-success:disabled {
+  color: #000;
+  background-color: #e9ecef;
+  border-color: #d0d0d0;
+  }
+
+button[disabled],
+input[disabled] {
+  cursor: not-allowed !important;
+}
+
+input[type="radio"]:disabled {
+  background-color: black !important;
+}
+
+input[type="radio"][disabled]+label {
+  color: Gray;
+}
+
+/* loader */
+
+.loader {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 0px;
+  border-top: 4px solid #ff0000;
+  border-right: 4px solid transparent;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+
+.loader::after {
+  content: '';
+  box-sizing: border-box;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border-left: 4px solid #569ff7;
+  border-bottom: 4px solid transparent;
+  animation: rotation 0.5s linear infinite reverse;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.hide {
+  display: none;
+}
+
+#survey-screen-1 {
+    padding-bottom: 0px !important;
+}
+
+.footer-row{
+	display: none !important;
+}
+
+/* loader */

@@ -1,0 +1,13 @@
+# All country API URLs
+
+VC.baseurl = https://api.stvincent.servicedx.com
+VC.tenant = servicedx
+
+JM.baseurl = https://api.jamaica.servicedx.com
+JM.tenant = servicedx
+
+IN.baseurl = https://qa.servicedx.com
+IN.tenant = servicedx_qa
+
+TT.baseurl = https://api-diabassoctt.servicedx.com
+TT.tenant = servicedx

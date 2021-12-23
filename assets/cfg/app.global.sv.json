@@ -1,0 +1,7 @@
+{
+  "country": "SV",
+  "tenant": "servicedx",
+  "base_admin_url": "https://api.stvincent.servicedx.com/admin",
+  "base_sender_url": "https://api.stvincent.servicedx.com/sender",
+  "base_url": "https://api.stvincent.servicedx.com"
+}

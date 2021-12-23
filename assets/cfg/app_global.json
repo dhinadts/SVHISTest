@@ -1,0 +1,10 @@
+{
+  "JM_tenant": "servicedx",
+  "JM_base_url": "https://api.jamaica.servicedx.com",
+  "VC_tenant": "servicedx",
+  "VC_base_url": "https://api.stvincent.servicedx.com",
+  "IN_tenant": "servicedx_qa",
+  "IN_base_url": "https://qa.servicedx.com",
+  "TT_tenant": "servicedx",
+  "TT_base_url": "https://api-diabassoctt.servicedx.com"
+}

@@ -1,0 +1,195 @@
+name: Memberly
+description: A new Flutter application.
+
+version: 1.1.6+17
+
+environment:
+  sdk: ">=2.8.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^0.1.3
+  root_checker:
+    path: local_plugin/root_checker-0.1.3
+  flutter_datetime_picker:
+    path: local_plugin/flutter_datetime_picker
+  audio_recorder:
+    path: local_plugin/audio_recorder-1.0.2
+  # Changed line no 1868(InAppWebView.java) to fix the app crash (input field long press)
+  flutter_inappwebview:
+    path: local_plugin/flutter_inappwebview 4.0.0+4
+  native_screenshot:
+    path: local_plugin/native_screenshot-0.0.5
+
+  #Basic storage
+  flutter_secure_storage: ^3.2.1+1
+  #Connectivity
+  flutter_tagging: ^2.2.0+3
+  flutter_syntax_view: ^1.0.0
+  connectivity: ^0.4.4
+  google_fonts: ^0.2.0
+  flutter_bloc: ^3.2.0
+  percent_indicator: "^2.1.1"
+  flutter_spinkit: ^4.1.1
+  fluttertoast: ^4.0.0
+  flutter_image_compress: ^0.6.5+1
+  image_picker: ^0.6.3+4
+  flutter_xlider: ^3.2.0
+  flip_card: ^0.4.4
+  get_it: ^4.0.2
+  flutter_downloader: ^1.4.4
+  global_configuration: ^1.5.0
+  package_info: ^0.4.0+13
+  expandable: ^4.1.3
+  uuid: 2.2.2
+  uni_links: ^0.4.0
+  razorpay_flutter: ^1.2.2
+  firebase_messaging: ^6.0.13
+  flutter_local_notifications: ^4.0.1+2
+  #for Geo loaction
+  google_maps_flutter: ^1.0.6
+  time: ^1.4.0
+  geolocator: ^5.1.5
+  location: ^3.0.0
+  json_annotation: ^3.0.0
+  awesome_dialog: ^1.2.1
+  showcaseview: 0.1.0
+  random_color: ^1.0.5
+  themify_flutter: ^1.0.0
+  modal_progress_hud: ^0.1.3
+  searchable_dropdown: ^1.1.3
+  contacts_service: ^0.4.5
+  permission_handler: ^4.0.0
+  shared_preferences: ^0.5.12+4
+  device_preview: ^0.4.5
+  url_launcher: ^5.4.7
+  path_provider: ^1.5.1
+  open_file: ^2.0.3
+  flutter_calendar_carousel:
+  vertical_tabs: ^0.2.0
+  table_calendar: ^2.2.3
+  advance_pdf_viewer: ^1.2.0
+  file: ^5.0.4
+  provider: ^4.1.2
+  dotted_border: ^1.0.6
+  video_player: ^0.10.12+3
+  audioplayers: ^0.16.2 # changed from 0.17.0(it does not support from Android 21)
+  file_picker: ^2.0.0
+  #flutter_inappwebview: ^4.0.0+4
+  carousel_slider: ^3.0.0
+  #AdMob
+  firebase_admob:
+  admob_flutter: ^1.0.1
+  #getwidget
+  getwidget: ^1.1.3
+
+  #ScreenShot
+  screenshot: ^0.2.0
+  image_gallery_saver: ^1.5.0
+
+  #Transparent Image
+  transparent_image: ^1.0.0
+
+  #FlutterTag
+  flutter_tags: ^0.4.8+2
+
+  share: ^0.6.5
+  webview_flutter: ^0.3.22
+  flutter_clean_calendar: ^1.0.2+1
+  expressions: ^0.1.5
+  #html
+  html: ^0.14.0+4
+  # Charts
+  charts_flutter: ^0.9.0
+  cached_network_image: ^2.4.1
+  flutter_rating_bar: ^3.2.0+1
+  # agora_rtc_engine: ^1.0.12
+  flutter_screen_recording: ^1.1.1
+  #agora_rtm: ^0.9.14
+  #agora_rtc_engine: ^3.1.3
+  agora_rtc_engine: ^3.2.1
+  avatar_letter: ^1.0.1
+  flutter_easyloading: ^2.2.2
+  badges: ^1.2.0
+
+  # To launch RPSystemBroadcastPickerView in iOS
+  replay_kit_launcher: 0.2.0
+
+  # To share some necessary parameters (e.g AppID/AppSign/RoomID/StreamID) from main flutter app to the iOS broadcast upload extension (ReplayKit) sub-process through the app group capability
+  shared_preference_app_group: 0.2.0
+
+  flutter_bluetooth_serial: ^0.2.2
+  cloud_firestore: ^0.13.5
+  firebase_auth: ^0.16.1
+  # firebase_database: ^3.1.6
+  firebase_core: ^0.4.5
+
+  #pdf
+  pdf: ^1.13.0
+  printing: ^3.7.2
+
+  #qr scanning
+  qr_code_scanner: ^0.3.5
+
+  #Annotations
+  flutter_colorpicker: ^0.3.5
+
+  #Screen wakelock
+  wakelock: ^0.2.1+1
+  data_connection_checker: ^0.3.4
+  app_usage: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  unicorndial: "^1.1.5"
+  datetime_picker_formfield: ^1.0.0
+  http: ^0.12.0+2
+  rxdart: ^0.23.1
+  build_runner: ^1.0.0
+  json_serializable: ^3.0.0
+  shimmer: ^1.0.0
+  intl: ^0.16.1
+  font_awesome_flutter: ^8.11.0
+  modal_bottom_sheet: ^1.0.0+1
+  flutter_launcher_icons: ^0.7.4
+  group_list_view: ^1.0.6
+  flutter_countdown_timer: ^3.0.0
+
+flutter_icons:
+  ios: true
+  image_path: "assets/appicon/appicon.png"
+
+flutter:
+  uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  assets:
+    - assets/termsandconditions.pdf
+    - assets/cfg/
+    - assets/api/
+    - assets/images/
+    - locale/
+    - assets/appicon/appicon.png
+    - assets/i18n/
+    - assets/i18n/flags/
+    - assets/local/localization_en.json
+    - assets/menu.json
+    - assets/faq.json
+    - assets/static/
+    - assets/css/
+    - assets/css/poopins/
+    - assets/css/poopins/fonts/
+    - assets/css/custom-formio/
+    - assets/css/custom-formio/fonts/
+    - assets/js/
+    - assets/js/pooper/
+    - assets/js/lodash/
+    - assets/js/investigate/
+    - assets/member_editorial.html
+    - assets/user_editorial.html
+    - assets/static/400.html
+    - assets/static/500.html

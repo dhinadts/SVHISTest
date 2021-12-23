@@ -1,0 +1,7 @@
+{
+    "message": "A new version of the app is available.",
+    "versionNumber": "1.0.2",
+    "isUpdateAvailable": true,
+    "isMantatoryUpdate": false,
+    "storeUrl": "https://play.google.com/store/?hl=en_US&gl=US"
+  }
