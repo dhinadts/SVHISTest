@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:Memberly/login/colors/color_info.dart';
 import 'package:Memberly/qrModule/qrCodeResult.dart';
 import 'package:Memberly/ui/custom_drawer/custom_app_bar.dart';
 import 'package:Memberly/ui/splash_screen.dart';
+import 'package:Memberly/ui_utils/app_colors.dart';
 import 'package:Memberly/utils/constants.dart';
 import 'package:package_info/package_info.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -90,11 +92,12 @@ class _QRScanPageState extends State<QRScanPage> {
   }
 
   totalCountsCall() async {
-    // String url = "${WebserviceConstants.baseFilingURL}" +
-    //     "/GetVaccinationQrScanCount?login_user=${AppPreferences().username}&role=${AppPreferences().role}";
-
+    String url1 = "${WebserviceConstants.baseFilingURL}" +
+        "/GetVaccinationQrScanCount?login_user=${AppPreferences().username}&role=${AppPreferences().role}";
+    print(url1);
     String url =
-        "https: //qa.servicedx.com/filing/GetVaccinationQrScanCount?login_user=${AppPreferences().username}&role=${AppPreferences().role}";
+        "https://qa.servicedx.com/filing/GetVaccinationQrScanCount?login_user=${AppPreferences().username}&role=${AppPreferences().role}";
+    print(url);
     var response = await http.get(url);
     print(response.body);
     print(response.statusCode);
@@ -199,7 +202,7 @@ class _QRScanPageState extends State<QRScanPage> {
         print(url);
         bool result = await getVaccinationInfo(url);
         print("RESULT ===" + "$result");
-        if (!result) {
+        if (result) {
           firstName = res['First Name'];
           lastName = res['Last Name'];
           dateOfBirth = res['Birth Date'];
@@ -311,163 +314,234 @@ class _QRScanPageState extends State<QRScanPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: <Widget>[
+                        // Expanded(
+                        //   flex: 2,
+                        //   child: Container(
+                        //     child: Image.asset(
+                        //       "assets/images/qrcodeLogo_logo.png",
+                        //     ),
+                        //   ),
+                        // ),
                         Expanded(
-                          flex: 2,
-                          child: Container(
-                            child: Image.asset(
-                              "assets/images/qrcodeLogo_logo.png",
-                            ),
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            Text(
-                              'Name : ',
-                              //textAlign: TextAlign.center,
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              '$firstName $lastName',
-                              //textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Text(
-                              'Vaccination Name : ',
-                              //textAlign: TextAlign.center,
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              '$vaccineName',
-                              //textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text('Identification Type : ',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text('$identificationType'),
-                          ],
-                        ),
-                        identificationType == "none"
-                            ? SizedBox.shrink()
-                            : Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Identification No : ',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    '$identificationNumber',
-                                    maxLines: 2,
-                                  ),
-                                ],
+                            flex: 2,
+                            child: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(20.0),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      dose1Date == null || dose1Date.isEmpty
+                                          ? Icons.cancel_rounded
+                                          : Icons.check_circle_rounded,
+                                      size: 100,
+                                      color:
+                                          dose1Date == null || dose1Date.isEmpty
+                                              ? Colors.red
+                                              : Colors.green,
+                                    ),
+                                    Text(
+                                      dose1Date == null || dose1Date.isEmpty
+                                          ? "NOT VACCINATED"
+                                          : "VACCINATED",
+                                      style: TextStyle(
+                                          color: dose1Date == null ||
+                                                  dose1Date.isEmpty
+                                              ? Colors.red
+                                              : Colors.green,
+                                          fontSize: 25),
+                                    )
+                                  ],
+                                ),
                               ),
+                            )),
+                        dose1Date == null || dose1Date.isEmpty
+                            ? SizedBox.shrink()
+                            : Expanded(
+                                flex: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(25.0),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            'Name : ',
+                                            //textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          Text(
+                                            '$firstName $lastName',
+                                            //textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            'Vaccination Name : ',
+                                            //textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          Text(
+                                            '$vaccineName',
+                                            //textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Text('Identification Type : ',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                          Text('$identificationType'),
+                                        ],
+                                      ),
+                                      identificationType == "none"
+                                          ? SizedBox.shrink()
+                                          : Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'Identification No : ',
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                                Text(
+                                                  '$identificationNumber',
+                                                  maxLines: 2,
+                                                ),
+                                              ],
+                                            ),
 
-                        // Divider(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      // Divider(),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        mainAxisSize: MainAxisSize.max,
+                                        children: [
+                                          Column(
+                                            children: [
+                                              Text(
+                                                'Certification No',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  // fontSize: 12,
+                                                ),
+                                              ),
+                                              Container(
+                                                child: Text(
+                                                  '$certificationNumber',
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                      // fontSize: 12,
+                                                      ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          /*           Column(
                           mainAxisSize: MainAxisSize.max,
                           children: [
-                            Column(
-                              children: [
-                                Text(
-                                  'Certification No',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    // fontSize: 12,
-                                  ),
-                                ),
-                                Container(
-                                  child: Text(
-                                    '$certificationNumber',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        // fontSize: 12,
-                                        ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            /*           Column(
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          Container(
-                            width: 1,
-                            height: double.infinity,
-                            color: Colors.blueGrey,
-                          ),
-                        ],
-                      ),  */
-                            Column(
-                              children: [
-                                Text(
-                                  'Dose 1 Date',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    // fontSize: 12,
-                                  ),
-                                ),
-                                Text(
-                                  '$dose1Date',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      // fontSize: 12,
-                                      ),
-                                ),
-                              ],
-                            ),
-                            /*  Column(
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          Container(
-                            width: 1,
-                            height: double.infinity,
-                            color: Colors.blueGrey,
-                          ),
-                        ],
-                      ), */
-                            Column(
-                              children: [
-                                Text(
-                                  'Dose 2 Date',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    // fontSize: 12,
-                                  ),
-                                ),
-                                Text(
-                                  '$dose2Date',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      // fontSize: 14,
-                                      ),
-                                ),
-                              ],
+                            Container(
+                              width: 1,
+                              height: double.infinity,
+                              color: Colors.blueGrey,
                             ),
                           ],
-                        ),
-                        Row(
-                          mainAxisAlignment:
-                              /* AppPreferences().role != "User"
-                        ? MainAxisAlignment.spaceBetween
-                        : */
-                              MainAxisAlignment.center,
+                      ),  */
+                                          Column(
+                                            children: [
+                                              Text(
+                                                'Dose 1 Date',
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  // fontSize: 12,
+                                                ),
+                                              ),
+                                              Text(
+                                                '$dose1Date',
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    // fontSize: 12,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                          /*  Column(
+                          mainAxisSize: MainAxisSize.max,
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.only(left: 25.0),
-                              child: Row(
-                                children: [
+                            Container(
+                              width: 1,
+                              height: double.infinity,
+                              color: Colors.blueGrey,
+                            ),
+                          ],
+                      ), */
+                                          Column(
+                                            children: [
+                                              Text(
+                                                'Dose 2 Date',
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  // fontSize: 12,
+                                                ),
+                                              ),
+                                              Text(
+                                                '$dose2Date',
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    // fontSize: 14,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            /* AppPreferences().role != "User"
+                          ? MainAxisAlignment.spaceBetween
+                          : */
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                left: 25.0),
+                                            child: Row(
+                                              children: [
+                                                Text(
+                                                  "Today's Scanned Count : ",
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    // fontSize: 12,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  "$totalCounts",
+                                                  // style: TextStyle(
+                                                  //   fontWeight: FontWeight.bold,
+                                                  //   // fontSize: 14,
+                                                  // ),
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                          /* if (AppPreferences().role != "User")
+                          Padding(
+                            padding: const EdgeInsets.only(right: 25.0),
+                            child: Row(
+                              children: [
                                   Text(
-                                    "Today's Scanned Count : ",
+                                    "Today's total Count: ",
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       // fontSize: 12,
@@ -477,37 +551,18 @@ class _QRScanPageState extends State<QRScanPage> {
                                     "$totalCounts",
                                     // style: TextStyle(
                                     //   fontWeight: FontWeight.bold,
-                                    //   // fontSize: 14,
+                                    //   // fontSize: 12,
                                     // ),
                                   )
-                                ],
-                              ),
+                              ],
                             ),
-                            /* if (AppPreferences().role != "User")
-                        Padding(
-                          padding: const EdgeInsets.only(right: 25.0),
-                          child: Row(
-                            children: [
-                              Text(
-                                "Today's total Count: ",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  // fontSize: 12,
+                          ), */
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              Text(
-                                "$totalCounts",
-                                // style: TextStyle(
-                                //   fontWeight: FontWeight.bold,
-                                //   // fontSize: 12,
-                                // ),
-                              )
-                            ],
-                          ),
-                        ), */
-                          ],
-                        ),
-
                         //   onPressed: qrCodeResult == null
                         //       ? null
                         //       : () {
@@ -515,17 +570,37 @@ class _QRScanPageState extends State<QRScanPage> {
                         //         },
                         //   child: Text("SUBMIT"),
                         // )
-                        Center(
-                          child: RaisedButton(
-                            onPressed: () {
-                              setState(() {
-                                qrresult = false;
-                                controller.resumeCamera();
-                                pause = false;
-                                pause1 = "PAUSE";
-                              });
-                            },
-                            child: Text("Scan More"),
+
+                        Expanded(
+                          flex: 2,
+                          child: Center(
+                            child: new InkWell(
+                              child: new Container(
+                                  height: 50.0,
+                                  width: 120.0,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(5.0),
+                                    // color: AppColors.arrivedColor.withOpacity(0.75),
+                                    color: AppColors.primaryColor,
+                                  ),
+                                  child: new Center(
+                                    child: new Text(
+                                      "Scan More",
+                                      style: TextStyle(
+                                        color: Color(ColorInfo.WHITE),
+                                        fontSize: 18.0,
+                                      ),
+                                    ),
+                                  )),
+                              onTap: () {
+                                setState(() {
+                                  qrresult = false;
+                                  controller.resumeCamera();
+                                  pause = false;
+                                  pause1 = "PAUSE";
+                                });
+                              },
+                            ),
                           ),
                         )
                       ],

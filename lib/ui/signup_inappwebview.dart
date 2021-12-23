@@ -102,14 +102,16 @@ class _SignupInappWebviewState extends State<SignupInappWebview> {
                           // "&userName=null&page=signup"
                           // "&rootdepartmentName=${departmentName}"
                           // "&env_code=$environmentShortCode",
-                          "${AppPreferences().hostUrl}/sites/${AppPreferences().siteNavigator}/user_member_editorial.html?"
-                          "clientId=${widget.clientId}"
-                          "&departmentName=${widget.departmentName}"
-                          "&userName=null&page=signup"
-                          "&rootdepartmentName=${departmentName}"
-                          "&loggedInRole=null"
-                          "&mode=null"
-                          "&env_code=$environmentShortCode",
+                          widget.departmentName == "SVHISTest"
+                              ? "${AppPreferences().hostUrl}/sites/STV/signUpMessage.html"
+                              : "${AppPreferences().hostUrl}/sites/${AppPreferences().siteNavigator}/user_member_editorial.html?"
+                                  "clientId=${widget.clientId}"
+                                  "&departmentName=${widget.departmentName}"
+                                  "&userName=null&page=signup"
+                                  "&rootdepartmentName=${departmentName}"
+                                  "&loggedInRole=null"
+                                  "&mode=null"
+                                  "&env_code=$environmentShortCode",
                       initialHeaders: {},
                       contextMenu: ContextMenu(),
                       initialOptions: InAppWebViewGroupOptions(

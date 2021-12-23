@@ -156,6 +156,8 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
 
   @override
   void initState() {
+    print("------>>>>>>>>>>. ${AppPreferences().username}");
+    print("------>>>>>>>>>>. ${AppPreferences().role}");
     setGUISettings();
     // widget.drawerIndex = widget.drawerIndex == null || widget.drawerIndex == 100
     //     ? Constants.PAGE_ID_HOME
