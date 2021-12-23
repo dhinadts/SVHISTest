@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:Memberly/qrModule/qrCodeResult.dart';
 import 'package:Memberly/ui/custom_drawer/custom_app_bar.dart';
 import 'package:Memberly/ui/splash_screen.dart';
 import 'package:Memberly/utils/constants.dart';
@@ -57,6 +58,7 @@ class _QRScanPageState extends State<QRScanPage> {
   String totalCounts = "0";
   String pause1 = "PAUSE";
   String urlpppp = "";
+  bool qrresult = false;
   @override
   void initState() {
     // count1 = 0;
@@ -88,14 +90,19 @@ class _QRScanPageState extends State<QRScanPage> {
   }
 
   totalCountsCall() async {
-    String url = "${WebserviceConstants.baseFilingURL}" +
-        "/GetVaccinationQrScanCount?login_user=${AppPreferences().username}&role=${AppPreferences().role}";
+    // String url = "${WebserviceConstants.baseFilingURL}" +
+    //     "/GetVaccinationQrScanCount?login_user=${AppPreferences().username}&role=${AppPreferences().role}";
+
+    String url =
+        "https: //qa.servicedx.com/filing/GetVaccinationQrScanCount?login_user=${AppPreferences().username}&role=${AppPreferences().role}";
     var response = await http.get(url);
     print(response.body);
     print(response.statusCode);
     if (mounted)
       setState(() {
-        totalCounts = response.body.toString();
+        totalCounts = response.body.toString().contains("error")
+            ? "Error"
+            : response.body.toString();
       });
   }
 
@@ -293,91 +300,102 @@ class _QRScanPageState extends State<QRScanPage> {
         // shrinkWrap: true,
 
         children: <Widget>[
-          Expanded(flex: 2, child: _buildQrView(context)),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  Row(
-                    children: [
-                      Text(
-                        'Name : ',
-                        //textAlign: TextAlign.center,
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        '$firstName $lastName',
-                        //textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        'Vaccination Name : ',
-                        //textAlign: TextAlign.center,
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        '$vaccineName',
-                        //textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text('Identification Type : ',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text('$identificationType'),
-                    ],
-                  ),
-                  identificationType == "none"
-                      ? SizedBox.shrink()
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
+          !qrresult
+              ? Expanded(flex: 2, child: _buildQrView(context))
+              // : QRResultScreen(),
+              : Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        Expanded(
+                          flex: 2,
+                          child: Container(
+                            child: Image.asset(
+                              "assets/images/qrcodeLogo_logo.png",
+                            ),
+                          ),
+                        ),
+                        Row(
                           children: [
                             Text(
-                              'Identification No : ',
+                              'Name : ',
+                              //textAlign: TextAlign.center,
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                             Text(
-                              '$identificationNumber',
-                              maxLines: 2,
+                              '$firstName $lastName',
+                              //textAlign: TextAlign.center,
                             ),
                           ],
                         ),
-
-                  // Divider(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Column(
-                        children: [
-                          Text(
-                            'Certification No',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              // fontSize: 12,
+                        Row(
+                          children: [
+                            Text(
+                              'Vaccination Name : ',
+                              //textAlign: TextAlign.center,
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
-                          ),
-                          Container(
-                            child: Text(
-                              '$certificationNumber',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  // fontSize: 12,
+                            Text(
+                              '$vaccineName',
+                              //textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text('Identification Type : ',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text('$identificationType'),
+                          ],
+                        ),
+                        identificationType == "none"
+                            ? SizedBox.shrink()
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Identification No : ',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
                                   ),
+                                  Text(
+                                    '$identificationNumber',
+                                    maxLines: 2,
+                                  ),
+                                ],
+                              ),
+
+                        // Divider(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Column(
+                              children: [
+                                Text(
+                                  'Certification No',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    // fontSize: 12,
+                                  ),
+                                ),
+                                Container(
+                                  child: Text(
+                                    '$certificationNumber',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        // fontSize: 12,
+                                        ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
-                      /*           Column(
+                            /*           Column(
                         mainAxisSize: MainAxisSize.max,
                         children: [
                           Container(
@@ -387,26 +405,26 @@ class _QRScanPageState extends State<QRScanPage> {
                           ),
                         ],
                       ),  */
-                      Column(
-                        children: [
-                          Text(
-                            'Dose 1 Date',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              // fontSize: 12,
-                            ),
-                          ),
-                          Text(
-                            '$dose1Date',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                // fontSize: 12,
+                            Column(
+                              children: [
+                                Text(
+                                  'Dose 1 Date',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    // fontSize: 12,
+                                  ),
                                 ),
-                          ),
-                        ],
-                      ),
-                      /*  Column(
+                                Text(
+                                  '$dose1Date',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      // fontSize: 12,
+                                      ),
+                                ),
+                              ],
+                            ),
+                            /*  Column(
                         mainAxisSize: MainAxisSize.max,
                         children: [
                           Container(
@@ -416,56 +434,56 @@ class _QRScanPageState extends State<QRScanPage> {
                           ),
                         ],
                       ), */
-                      Column(
-                        children: [
-                          Text(
-                            'Dose 2 Date',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              // fontSize: 12,
-                            ),
-                          ),
-                          Text(
-                            '$dose2Date',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                // fontSize: 14,
+                            Column(
+                              children: [
+                                Text(
+                                  'Dose 2 Date',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    // fontSize: 12,
+                                  ),
                                 ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment:
-                        /* AppPreferences().role != "User"
-                        ? MainAxisAlignment.spaceBetween
-                        : */
-                        MainAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 25.0),
-                        child: Row(
-                          children: [
-                            Text(
-                              "Today's Scanned Count : ",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                // fontSize: 12,
-                              ),
+                                Text(
+                                  '$dose2Date',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      // fontSize: 14,
+                                      ),
+                                ),
+                              ],
                             ),
-                            Text(
-                              "$totalCounts",
-                              // style: TextStyle(
-                              //   fontWeight: FontWeight.bold,
-                              //   // fontSize: 14,
-                              // ),
-                            )
                           ],
                         ),
-                      ),
-                      /* if (AppPreferences().role != "User")
+                        Row(
+                          mainAxisAlignment:
+                              /* AppPreferences().role != "User"
+                        ? MainAxisAlignment.spaceBetween
+                        : */
+                              MainAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 25.0),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    "Today's Scanned Count : ",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      // fontSize: 12,
+                                    ),
+                                  ),
+                                  Text(
+                                    "$totalCounts",
+                                    // style: TextStyle(
+                                    //   fontWeight: FontWeight.bold,
+                                    //   // fontSize: 14,
+                                    // ),
+                                  )
+                                ],
+                              ),
+                            ),
+                            /* if (AppPreferences().role != "User")
                         Padding(
                           padding: const EdgeInsets.only(right: 25.0),
                           child: Row(
@@ -487,20 +505,33 @@ class _QRScanPageState extends State<QRScanPage> {
                             ],
                           ),
                         ), */
-                    ],
-                  )
+                          ],
+                        ),
 
-                  //   onPressed: qrCodeResult == null
-                  //       ? null
-                  //       : () {
-                  //           checkQRCode();
-                  //         },
-                  //   child: Text("SUBMIT"),
-                  // )
-                ],
-              ),
-            ),
-          )
+                        //   onPressed: qrCodeResult == null
+                        //       ? null
+                        //       : () {
+                        //           checkQRCode();
+                        //         },
+                        //   child: Text("SUBMIT"),
+                        // )
+                        Center(
+                          child: RaisedButton(
+                            onPressed: () {
+                              setState(() {
+                                qrresult = false;
+                                controller.resumeCamera();
+                                pause = false;
+                                pause1 = "PAUSE";
+                              });
+                            },
+                            child: Text("Scan More"),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                )
         ],
       ),
     );
@@ -595,15 +626,18 @@ class _QRScanPageState extends State<QRScanPage> {
         qrCodeResult = scanData;
         if (scanData.code.toString().contains('Date of vaccination')) {
           this.controller.pauseCamera();
-          checkQRCode();
+
           setState(() {
+            checkQRCode();
             pause = false;
             pause1 = "RESUME";
+            qrresult = true;
           });
         } else {
           setState(() {
             pause = true;
             pause1 = "PAUSE";
+            qrresult = true;
           });
 
           this.controller.resumeCamera();
