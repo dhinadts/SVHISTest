@@ -3,20 +3,17 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:Memberly/login/colors/color_info.dart';
-import 'package:Memberly/qrModule/qrCodeResult.dart';
+
+import 'package:Memberly/repo/common_repository.dart';
 import 'package:Memberly/ui/custom_drawer/custom_app_bar.dart';
 import 'package:Memberly/ui/splash_screen.dart';
 import 'package:Memberly/ui_utils/app_colors.dart';
+import 'package:Memberly/utils/app_preferences.dart';
 import 'package:Memberly/utils/constants.dart';
+import 'package:Memberly/utils/routes.dart';
 import 'package:package_info/package_info.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../model/user_info.dart';
-import '../repo/common_repository.dart';
-
-import '../ui/custom_drawer/navigation_home_screen.dart';
-import '../utils/app_preferences.dart';
-import '../utils/routes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -61,6 +58,10 @@ class _QRScanPageState extends State<QRScanPage> {
   String pause1 = "PAUSE";
   String urlpppp = "";
   bool qrresult = false;
+  bool inValidQR = false;
+
+  bool showLoader = false;
+
   @override
   void initState() {
     // count1 = 0;
@@ -181,7 +182,9 @@ class _QRScanPageState extends State<QRScanPage> {
 
       if (code.contains('Date of vaccination')) {
         var res = json.decode(code);
-
+        setState(() {
+          showLoader = true;
+        });
         print("success");
         print(res);
         // https://qa.servicedx.com/filing/vaccinationform/Details?first_name=Testananyakayu098&identification_type=ID%20Card&last_name=V
@@ -200,18 +203,26 @@ class _QRScanPageState extends State<QRScanPage> {
         //     "first_name=${res['First Name']}&identification_type=${res['Identification Type']}&last_name=${res['Last Name']}";
         print("testing url");
         print(url);
+
         bool result = await getVaccinationInfo(url);
         print("RESULT ===" + "$result");
+        setState(() {
+          showLoader = false;
+        });
         if (result) {
-          firstName = res['First Name'];
-          lastName = res['Last Name'];
-          dateOfBirth = res['Birth Date'];
-          dose1Date = res['V-1 Dose1-Date of vaccination'];
-          dose2Date = res['V-1 Dose2-Date of vaccination'];
-          vaccineName = res['V-1 Dose1-Vaccine'];
-          identificationType = res['Identification Type'];
-          certificationNumber = res['Certificate Number'];
-          identificationNumber = res['Identification Number'];
+          setState(() {
+            inValidQR = false;
+
+            firstName = res['First Name'];
+            lastName = res['Last Name'];
+            dateOfBirth = res['Birth Date'];
+            dose1Date = res['V-1 Dose1-Date of vaccination'];
+            dose2Date = res['V-1 Dose2-Date of vaccination'];
+            vaccineName = res['V-1 Dose1-Vaccine'];
+            identificationType = res['Identification Type'];
+            certificationNumber = res['Certificate Number'];
+            identificationNumber = res['Identification Number'];
+          });
           /* {Identification Type: none, 
           First Name: Testbabu0989, 
           Last Name: V, 
@@ -255,24 +266,30 @@ class _QRScanPageState extends State<QRScanPage> {
           //   print("Already available");
           // }
         } else {
-          Fluttertoast.showToast(
-              msg: "Record not available for now",
-              toastLength: Toast.LENGTH_LONG,
-              gravity: ToastGravity.TOP);
+          setState(() {
+            inValidQR = true;
+          });
+          // Fluttertoast.showToast(
+          //     msg: "Record not available for now",
+          //     toastLength: Toast.LENGTH_LONG,
+          //     gravity: ToastGravity.TOP);
         }
       } else {
-        Fluttertoast.showToast(
-            msg: "Invalid QR code",
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.TOP);
+        setState(() {
+          inValidQR = true;
+        });
+        // Fluttertoast.showToast(
+        //     msg: "Invalid QR code",
+        //     toastLength: Toast.LENGTH_LONG,
+        //     gravity: ToastGravity.TOP);
       }
       // await totalCountsCall();
     } catch (e) {
       debugPrint(e.toString());
       Fluttertoast.showToast(
-          msg: "Invalid QR code",
+          msg: "Unable to Scan, Please try again",
           toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.TOP);
+          gravity: ToastGravity.BOTTOM);
     }
     totalCountsCall();
   }
@@ -297,7 +314,7 @@ class _QRScanPageState extends State<QRScanPage> {
 
       // ),
       appBar: CustomAppBar(
-          title: widget.title == null ? "QR Code" : widget.title,
+          title: widget.title == null ? "QR Scanner" : widget.title,
           pageId: Constants.PAGE_ID_QRCODE),
       body: Column(
         // shrinkWrap: true,
@@ -307,146 +324,214 @@ class _QRScanPageState extends State<QRScanPage> {
               ? Expanded(flex: 2, child: _buildQrView(context))
               // : QRResultScreen(),
               : Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: <Widget>[
-                        // Expanded(
-                        //   flex: 2,
-                        //   child: Container(
-                        //     child: Image.asset(
-                        //       "assets/images/qrcodeLogo_logo.png",
-                        //     ),
-                        //   ),
-                        // ),
-                        Expanded(
-                            flex: 2,
-                            child: Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      dose1Date == null || dose1Date.isEmpty
-                                          ? Icons.cancel_rounded
-                                          : Icons.check_circle_rounded,
-                                      size: 100,
-                                      color:
-                                          dose1Date == null || dose1Date.isEmpty
-                                              ? Colors.red
-                                              : Colors.green,
-                                    ),
-                                    Text(
-                                      dose1Date == null || dose1Date.isEmpty
-                                          ? "NOT VACCINATED"
-                                          : "VACCINATED",
-                                      style: TextStyle(
-                                          color: dose1Date == null ||
-                                                  dose1Date.isEmpty
-                                              ? Colors.red
-                                              : Colors.green,
-                                          fontSize: 25),
-                                    )
-                                  ],
+                  child: showLoader
+                      ? Center(child: CircularProgressIndicator())
+                      : Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              // Expanded(
+                              //   flex: 2,
+                              //   child: Container(
+                              //     child: Image.asset(
+                              //       "assets/images/qrcodeLogo_logo.png",
+                              //     ),
+                              //   ),
+                              // ),
+                              Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 40.0),
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        inValidQR
+                                            ? Icons.cancel_rounded
+                                            : Icons.check_circle_rounded,
+                                        size: 100,
+                                        color: inValidQR
+                                            ? Colors.red
+                                            : Colors.green,
+                                      ),
+                                      Text(
+                                        inValidQR
+                                            ? "NO VACCINATION RECORD FOUND"
+                                            : "VACCINATED",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            color: inValidQR
+                                                ? Colors.red
+                                                : Colors.green,
+                                            fontSize: 25),
+                                      )
+                                    ],
+                                  ),
                                 ),
                               ),
-                            )),
-                        dose1Date == null || dose1Date.isEmpty
-                            ? SizedBox.shrink()
-                            : Expanded(
-                                flex: 2,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(25.0),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Text(
-                                            'Name : ',
-                                            //textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                          Text(
-                                            '$firstName $lastName',
-                                            //textAlign: TextAlign.center,
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Text(
-                                            'Vaccination Name : ',
-                                            //textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                          Text(
-                                            '$vaccineName',
-                                            //textAlign: TextAlign.center,
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Text('Identification Type : ',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                          Text('$identificationType'),
-                                        ],
-                                      ),
-                                      identificationType == "none"
-                                          ? SizedBox.shrink()
-                                          : Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Identification No : ',
-                                                  style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                ),
-                                                Text(
-                                                  '$identificationNumber',
-                                                  maxLines: 2,
-                                                ),
-                                              ],
-                                            ),
 
-                                      // Divider(),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        mainAxisSize: MainAxisSize.max,
-                                        children: [
-                                          Column(
-                                            children: [
-                                              Text(
-                                                'Certification No',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  // fontSize: 12,
-                                                ),
+                              // SizedBox(
+                              //   height: 20,
+                              // ),
+
+                              inValidQR
+                                  ? SizedBox.shrink()
+                                  : Expanded(
+                                      flex: 2,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          // horizontal: 16,
+                                          vertical: 20,
+                                        ),
+                                        child: SingleChildScrollView(
+                                          child: Card(
+                                            elevation: 4,
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                vertical: 8.0,
+                                                horizontal: 16,
                                               ),
-                                              Container(
-                                                child: Text(
-                                                  '$certificationNumber',
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                      // fontSize: 12,
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                children: [
+                                                  //Divider(),
+                                                  Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: Text(
+                                                          'Name',
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
                                                       ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          /*           Column(
+                                                      Center(
+                                                        child: Container(
+                                                          height: 30,
+                                                          color:
+                                                              Colors.blueGrey,
+                                                          width: 1,
+                                                        ),
+                                                      ),
+                                                      Expanded(
+                                                        child: Text(
+                                                          'Vaccine Name',
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  Divider(),
+                                                  Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: Text(
+                                                          '$firstName $lastName',
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: TextStyle(
+                                                              // fontWeight: FontWeight.bold,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                      Center(
+                                                        child: Container(
+                                                          height: 30,
+                                                          color:
+                                                              Colors.blueGrey,
+                                                          width: 1,
+                                                        ),
+                                                      ),
+                                                      Expanded(
+                                                        child: Text(
+                                                          '$vaccineName',
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  SizedBox(
+                                                    height: 8,
+                                                  ),
+                                                  Divider(),
+                                                  SizedBox(
+                                                    height: 8,
+                                                  ),
+                                                  // Row(
+                                                  //   mainAxisAlignment:
+                                                  //       MainAxisAlignment.start,
+                                                  //   children: [
+                                                  //     Text('Identification Type : ',
+                                                  //         style: TextStyle(
+                                                  //             fontWeight:
+                                                  //                 FontWeight.bold)),
+                                                  //     Text('$identificationType'),
+                                                  //   ],
+                                                  // ),
+                                                  // identificationType == "none"
+                                                  //     ? SizedBox.shrink()
+                                                  //     : Row(
+                                                  //         mainAxisAlignment:
+                                                  //             MainAxisAlignment.start,
+                                                  //         children: [
+                                                  //           Text(
+                                                  //             'Identification No : ',
+                                                  //             style: TextStyle(
+                                                  //                 fontWeight:
+                                                  //                     FontWeight.bold),
+                                                  //           ),
+                                                  //           Text(
+                                                  //             '$identificationNumber',
+                                                  //             maxLines: 2,
+                                                  //           ),
+                                                  //         ],
+                                                  //       ),
+
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    mainAxisSize:
+                                                        MainAxisSize.max,
+                                                    children: [
+                                                      Column(
+                                                        children: [
+                                                          Text(
+                                                            'Certification No',
+                                                            style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              // fontSize: 12,
+                                                            ),
+                                                          ),
+                                                          Container(
+                                                            child: Text(
+                                                              '$certificationNumber',
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                              style: TextStyle(
+                                                                  // fontSize: 12,
+                                                                  ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      /*           Column(
                           mainAxisSize: MainAxisSize.max,
                           children: [
                             Container(
@@ -456,26 +541,30 @@ class _QRScanPageState extends State<QRScanPage> {
                             ),
                           ],
                       ),  */
-                                          Column(
-                                            children: [
-                                              Text(
-                                                'Dose 1 Date',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  // fontSize: 12,
-                                                ),
-                                              ),
-                                              Text(
-                                                '$dose1Date',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                    // fontSize: 12,
-                                                    ),
-                                              ),
-                                            ],
-                                          ),
-                                          /*  Column(
+                                                      Column(
+                                                        children: [
+                                                          Text(
+                                                            'Dose 1 Date',
+                                                            textAlign: TextAlign
+                                                                .center,
+                                                            style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              // fontSize: 12,
+                                                            ),
+                                                          ),
+                                                          Text(
+                                                            '$dose1Date',
+                                                            textAlign: TextAlign
+                                                                .center,
+                                                            style: TextStyle(
+                                                                // fontSize: 12,
+                                                                ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      /*  Column(
                           mainAxisSize: MainAxisSize.max,
                           children: [
                             Container(
@@ -485,127 +574,184 @@ class _QRScanPageState extends State<QRScanPage> {
                             ),
                           ],
                       ), */
-                                          Column(
-                                            children: [
-                                              Text(
-                                                'Dose 2 Date',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  // fontSize: 12,
-                                                ),
-                                              ),
-                                              Text(
-                                                '$dose2Date',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                    // fontSize: 14,
-                                                    ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        mainAxisAlignment:
-                                            /* AppPreferences().role != "User"
-                          ? MainAxisAlignment.spaceBetween
-                          : */
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                                left: 25.0),
-                                            child: Row(
-                                              children: [
-                                                Text(
-                                                  "Today's Scanned Count : ",
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    // fontSize: 12,
+                                                      Column(
+                                                        children: [
+                                                          Text(
+                                                            'Dose 2 Date',
+                                                            textAlign: TextAlign
+                                                                .center,
+                                                            style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              // fontSize: 12,
+                                                            ),
+                                                          ),
+                                                          Text(
+                                                            '$dose2Date',
+                                                            textAlign: TextAlign
+                                                                .center,
+                                                            style: TextStyle(
+                                                                // fontSize: 14,
+                                                                ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
                                                   ),
-                                                ),
-                                                Text(
-                                                  "$totalCounts",
-                                                  // style: TextStyle(
-                                                  //   fontWeight: FontWeight.bold,
-                                                  //   // fontSize: 14,
-                                                  // ),
-                                                )
-                                              ],
+                                                  identificationType != "none"
+                                                      ? SizedBox.shrink()
+                                                      : Divider(),
+                                                  identificationType != "none"
+                                                      ? SizedBox.shrink()
+                                                      : Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceBetween,
+                                                          children: [
+                                                            Column(
+                                                              children: [
+                                                                Text(
+                                                                  'Identification Type',
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .center,
+                                                                  style:
+                                                                      TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                  ),
+                                                                ),
+                                                                Text(
+                                                                  identificationType,
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .center,
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            Container(
+                                                              color: Colors
+                                                                  .blueGrey,
+                                                              width: 1,
+                                                              height: 30,
+                                                            ),
+                                                            Column(
+                                                              children: [
+                                                                Text(
+                                                                  'Identification No',
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .center,
+                                                                  style:
+                                                                      TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                  ),
+                                                                ),
+                                                                Text(
+                                                                  identificationNumber
+                                                                      .toString(),
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .center,
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ],
+                                                        ),
+                                                ],
+                                              ),
                                             ),
                                           ),
-                                          /* if (AppPreferences().role != "User")
-                          Padding(
-                            padding: const EdgeInsets.only(right: 25.0),
-                            child: Row(
-                              children: [
-                                  Text(
-                                    "Today's total Count: ",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      // fontSize: 12,
-                                    ),
-                                  ),
-                                  Text(
-                                    "$totalCounts",
-                                    // style: TextStyle(
-                                    //   fontWeight: FontWeight.bold,
-                                    //   // fontSize: 12,
-                                    // ),
-                                  )
-                              ],
-                            ),
-                          ), */
-                                        ],
+                                        ),
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                              //   onPressed: qrCodeResult == null
+                              //       ? null
+                              //       : () {
+                              //           checkQRCode();
+                              //         },
+                              //   child: Text("SUBMIT"),
+                              // )
+
+                              SizedBox(
+                                height: 20,
+                              ),
+                              inValidQR
+                                  ? Container(
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        "Click \'Scan More\' for next scan",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    )
+                                  : Center(
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: Colors.green, width: 2),
+                                          borderRadius:
+                                              BorderRadius.circular(100),
+                                        ),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 18,
+                                          vertical: 12,
+                                        ),
+                                        child: Text(
+                                          "Total People Scanned : $totalCounts",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.green,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                              SizedBox(
+                                height: 20,
+                              ),
+                              Center(
+                                child: new InkWell(
+                                  child: new Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(5.0),
+                                        // color: AppColors.arrivedColor.withOpacity(0.75),
+                                        color: AppColors.primaryColor,
+                                      ),
+                                      child: new Text(
+                                        "Scan Another",
+                                        style: TextStyle(
+                                          color: Color(ColorInfo.WHITE),
+                                          fontSize: 16.0,
+                                        ),
+                                      )),
+                                  onTap: () {
+                                    setState(() {
+                                      qrresult = false;
+                                      controller.resumeCamera();
+                                      pause = false;
+                                      pause1 = "PAUSE";
+                                    });
+                                  },
                                 ),
                               ),
-                        //   onPressed: qrCodeResult == null
-                        //       ? null
-                        //       : () {
-                        //           checkQRCode();
-                        //         },
-                        //   child: Text("SUBMIT"),
-                        // )
-
-                        Expanded(
-                          flex: 2,
-                          child: Center(
-                            child: new InkWell(
-                              child: new Container(
-                                  height: 50.0,
-                                  width: 120.0,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(5.0),
-                                    // color: AppColors.arrivedColor.withOpacity(0.75),
-                                    color: AppColors.primaryColor,
-                                  ),
-                                  child: new Center(
-                                    child: new Text(
-                                      "Scan More",
-                                      style: TextStyle(
-                                        color: Color(ColorInfo.WHITE),
-                                        fontSize: 18.0,
-                                      ),
-                                    ),
-                                  )),
-                              onTap: () {
-                                setState(() {
-                                  qrresult = false;
-                                  controller.resumeCamera();
-                                  pause = false;
-                                  pause1 = "PAUSE";
-                                });
-                              },
-                            ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                            ],
                           ),
-                        )
-                      ],
-                    ),
-                  ),
+                        ),
                 )
         ],
       ),
@@ -713,10 +859,18 @@ class _QRScanPageState extends State<QRScanPage> {
             pause = true;
             pause1 = "PAUSE";
             qrresult = true;
+            inValidQR = true;
           });
 
           this.controller.resumeCamera();
         }
+      });
+    }).onError((err) {
+      print('EEEE: ${err}');
+      setState(() {
+        setState(() {
+          inValidQR = true;
+        });
       });
     });
   }

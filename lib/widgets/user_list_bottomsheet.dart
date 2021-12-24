@@ -362,8 +362,9 @@ class UserProfileBottomSheet extends StatefulWidget {
   UserInfoValidationBloc userInfoValidationBloc;
   bool superProfile;
 
-  UserProfileBottomSheet(UserInfo _user,
-      UserInfoValidationBloc _userInfoValidationBloc, bool superProfile) {
+  UserProfileBottomSheet(
+      UserInfo _user, UserInfoValidationBloc _userInfoValidationBloc,
+      {bool superProfile}) {
     this.user = _user;
 
     this.userInfoValidationBloc = _userInfoValidationBloc;

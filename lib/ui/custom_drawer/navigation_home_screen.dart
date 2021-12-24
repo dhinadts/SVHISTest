@@ -1,11 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'package:app_usage/app_usage.dart';
 
 import 'package:Memberly/qrModule/qrScanner.dart';
-import 'package:Memberly/ui/tabs/user_info_membership_card.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:connectivity/connectivity.dart';
 
+// import '../../introSLides.dart';
 import '../../model/gui_settings.dart';
 
 import '../../globals.dart';
@@ -71,7 +73,6 @@ import '../../utils/constants.dart';
 import '../administration/administration_screen.dart';
 import '../advertise/advertise_widget.dart';
 import '../advertise/interstitial_ad_widget.dart';
-import '../callus.dart';
 import '../committees/commitees_list_screen.dart';
 import '../diabetes_risk_score/diabetes_risk_score_list_screen.dart';
 import '../diabetes_risk_score/tabs/diabetes_riskscore_tab.dart';
@@ -87,6 +88,7 @@ import '../recent_activity_list_screen.dart';
 import '../reset_password_screen.dart';
 import '../settings_screen.dart';
 import '../smart_note/smart_note_file_list_screen.dart';
+import '../splash_screen.dart';
 import '../subscription/subscription_list_screen.dart';
 import '../support_screen.dart';
 import '../tabs/app_localizations.dart';
@@ -153,11 +155,58 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
   static Random random = new Random();
 
   var showFlashView = false;
+  bool checkNet = false;
+  DateTime logOut;
+
+  netcheck() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    // if (connectivityResult == ConnectivityResult.mobile ||
+    //     connectivityResult == ConnectivityResult.wifi) {
+    //   setState(() {
+    //     checkNet = true;
+    //   });
+    // } else {
+    //   setState(() {
+    //     checkNet = false;
+    //   });
+    // }
+
+    if (connectivityResult == ConnectivityResult.mobile ||
+        connectivityResult == ConnectivityResult.wifi) {
+    } else {
+      await showDialog(
+        context: context,
+        builder: (BuildContext context) => WillPopScope(
+          onWillPop: () async => true,
+          child: CupertinoAlertDialog(
+            title: Text("No Internet connection"),
+            content: Text(
+                "Your device is currently not connected to the internet, Please check your internet connectivity and try again."),
+            actions: [
+              CupertinoDialogAction(
+                // isDefaultAction: true,
+                child: Text('Ok'),
+                onPressed: () async {
+                  debugPrint("notification pressed ios");
+                  if (Platform.isAndroid) {
+                    SystemNavigator.pop();
+                  } else if (Platform.isIOS) {
+                    exit(0);
+                  }
+                  // exit(0);
+                },
+              )
+            ],
+          ),
+        ),
+      );
+    }
+  }
 
   @override
   void initState() {
-    print("------>>>>>>>>>>. ${AppPreferences().username}");
-    print("------>>>>>>>>>>. ${AppPreferences().role}");
+    // autologout();
+    netcheck();
     setGUISettings();
     // widget.drawerIndex = widget.drawerIndex == null || widget.drawerIndex == 100
     //     ? Constants.PAGE_ID_HOME
@@ -196,9 +245,10 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
       });
     }
     // getAllAdvertisements();
+    totalCountsCall();
     super.initState();
     getLegacyHome();
-    getNewsFeedAndRemainders();
+    // getNewsFeedAndRemainders();
     // newsFeedUrl();
     // wishes();
     initializeAd();
@@ -209,6 +259,65 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
     checkMembershipAvailability();
   }
 
+  @override
+  void reassemble() {
+    super.reassemble();
+    //  autologout();
+  }
+
+  @override
+  void didChangeDependencies() {
+    // autologout();
+    super.didChangeDependencies();
+  }
+
+  int count1 = 0;
+  List<AppUsageInfo> _infos = [];
+
+  autologout() async {
+    print("123");
+    // try {
+    //   DateTime endDate = new DateTime.now();
+    //   DateTime startDate = endDate.subtract(Duration(hours: 1));
+    //   List<AppUsageInfo> infoList =
+    //       await AppUsage.getAppUsage(startDate, endDate);
+    //   setState(() {
+    //     _infos = infoList;
+    //   });
+
+    //   for (var info in infoList) {
+    //     print("11123");
+    //     print(info.toString());
+    //   }
+    // } on AppUsageException catch (exception) {
+    //   print("exception  --$exception");
+    // }
+    // SharedPreferences prefs = await SharedPreferences.getInstance();
+    // if (prefs.getInt("QRLogin") != 1) {
+    //   await prefs.setInt("QRLogin", 1);
+    //   logOut = DateTime.now().add(Duration(seconds: 15));
+    //   // await AppPreferences.logoutClearPreferences();
+    // } else if (logOut == DateTime.now()) {
+    //   await AppPreferences.logoutClearPreferences();
+    //   await Navigator.pushReplacement(
+    //       context, MaterialPageRoute(builder: (context) => SplashScreen()));
+    //   await prefs.setInt("QRLogin", 0);
+    // } else if (count1 == 15) {
+    //   await AppPreferences.logoutClearPreferences();
+    //   await Navigator.pushReplacement(
+    //       context, MaterialPageRoute(builder: (context) => SplashScreen()));
+    //   await prefs.setInt("QRLogin", 0);
+    // }
+    Timer.periodic(Duration(minutes: 5), (t) async {
+      await AppPreferences.logoutClearPreferences();
+      await Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => SplashScreen()));
+      //   await prefs.setInt("QRLogin", 0);
+    });
+
+    // return logOut;
+  }
+
   setGUISettings() {
     String settings = json.decode(AppPreferences().guiSettings);
     guiSettings = GuiSettings.fromJson(
@@ -217,6 +326,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
       menu_grid_launcher_icon_id = guiSettings.menuGridLauncherIconId;
       //AppColors.primaryColor =  Colors.red;
     });
+    print("menu_grid_launcher_icon_id -- $menu_grid_launcher_icon_id");
   }
 
   checkMembershipAvailability() async {
@@ -245,14 +355,14 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
     AppColors.primaryColor = HexColor(await AppPreferences.getAppColor());
   }
 
-  wishes() async {
-    // debugPrint("WebserviceConstants.baseURL inside wishes");
-    // debugPrint(WebserviceConstants.baseURL);
-    if (WebserviceConstants.baseURL != null) {
-      remaindersListData = await CommonRepository().getWishesList();
-      setState(() {});
-    }
-  }
+  // wishes() async {
+  //   debugPrint("WebserviceConstants.baseURL inside wishes");
+  //   debugPrint(WebserviceConstants.baseURL);
+  //   if (WebserviceConstants.baseURL != null) {
+  //     remaindersListData = await CommonRepository().getWishesList();
+  //     setState(() {});
+  //   }
+  // }
 
 //********ADMOB******//////
 
@@ -440,7 +550,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
         List<dynamic> jsonData;
         try {
           jsonData = jsonDecode(response.body);
-          // print("Ad response  --> $url");
+          print("Ad response  --> $url");
           jsonMapData.putIfAbsent("advertiseDataList", () => jsonData);
           // debugPrint("advertiseDataList - ${jsonData.toString()}");
         } catch (_) {
@@ -498,21 +608,12 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
   }
 
   _launchExternalURL(String url) async {
-    print("147852369   " + url);
-    // print(await canLaunch(url));
-    // await canLaunch(url);
-    try {
+    if (await canLaunch(url)) {
+      debugPrint(url);
       await launch(url);
-    } catch (e) {
-      print(e.toString());
+    } else {
+      throw 'Could not launch $url';
     }
-    // final a = print("what is a - $a");
-    // if (await canLaunch(url)) {
-    //   debugPrint(url);
-    //   await launch(url);
-    // } else {
-    //   throw 'Could not launch $url';
-    // }
   }
 
 // Check from the App Preference
@@ -539,232 +640,233 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
     //     setRemainders.toString());
   }
 
-  getNewsFeedAndRemainders() async {
-    setNewsFeed = await AppPreferences.getNewFeedEnabled();
-    setRemainders = await AppPreferences.getRemindersEnabled();
-    // print("the follow");
-    // print(setNewsFeed);
-    // print(setRemainders);
-    setState(() {
-      setNewsFeed = setNewsFeed;
-      setRemainders = !setRemainders;
-    });
-  }
+  // getNewsFeedAndRemainders() async {
+  //   setNewsFeed = await AppPreferences.getNewFeedEnabled();
+  //   setRemainders = await AppPreferences.getRemindersEnabled();
+  //   print("the follow");
+  //   print(setNewsFeed);
+  //   print(setRemainders);
+  //   setState(() {
+  //     setNewsFeed = setNewsFeed;
+  //     setRemainders = !setRemainders;
+  //   });
+  // }
 
   //bool showGridMenu = false;
 
   Scaffold buildHomePageGridView(List<DrawerList> gridList) {
     return Scaffold(
-        // appBar: CustomAppBar(
-        //     title: AppLocalizations.of(context).translate("key_home"),
-        //     pageId: Constants.PAGE_ID_HOME),
-        floatingActionButton: setLegacy != null && setLegacy
-            ? SizedBox.shrink()
-            : FloatingActionButton(
-                shape: RoundedRectangleBorder(
-                  side: BorderSide.none,
-                ),
-                elevation: 0.0,
-                highlightElevation: 0.0,
-                backgroundColor: Colors.transparent,
-                child: setLegacy != null && !setLegacy
-                    ? Image.asset(
-                        "assets/images/menu-button-md.png",
-                        fit: BoxFit.cover,
-                        // height: 24, width: 24
-                      )
-                    : SizedBox.shrink(),
-                onPressed: () {
-                  FocusScope.of(context).requestFocus(FocusNode());
-                  setState(() {
-                    showMenuGridScreen = !showMenuGridScreen;
-                    screenView = buildHomePageGridView(gridList);
-                    //debugPrint("showMenuGridScreen --> $showMenuGridScreen");
-                  });
-                },
+      // appBar: CustomAppBar(
+      //     title: AppLocalizations.of(context).translate("key_home"),
+      //     pageId: Constants.PAGE_ID_HOME),
+      floatingActionButton: setLegacy != null && setLegacy
+          ? SizedBox.shrink()
+          : FloatingActionButton(
+              shape: RoundedRectangleBorder(
+                side: BorderSide.none,
               ),
-        body: SafeArea(
-          child: Stack(
-            children: [
-              // Positioned(
-              //     left: 10,
-              //     top: 10,
-              //     child: IconButton(
-              //         icon: Icon(
-              //           Icons.menu,
-              //           color: Colors.black,
-              //         ),
-              //         onPressed: null)),
-              SingleChildScrollView(
-                child: Container(
-                  child: ListView(
-                    shrinkWrap: true,
-                    scrollDirection: Axis.vertical,
-                    physics: ClampingScrollPhysics(),
-                    children: [
-                      SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: Container(
-                          color: Colors.white,
-                          child: Column(
-                            children: [
-                              GestureDetector(
-                                onDoubleTap: () {
-                                  // Navigator.push(context,
-                                  //     MaterialPageRoute(builder: (context) => UserRequest()));
-                                },
-                                child: Container(
-                                    width: double.infinity,
-                                    color: Colors.white,
-                                    child: UpperLogoWidget(
-                                      home: true,
-                                      showPoweredBy: true,
-                                      showTitle: AppPreferences().clientId ==
-                                          Constants.GNAT_KEY,
-                                      showVersion: false,
-                                    )),
-                              ),
-                              SizedBox(height: 10.0),
-                              !showMenuGridScreen
-                                  ? Container(
-                                      child: ListView(
-                                          padding: EdgeInsets.zero,
-                                          shrinkWrap: true,
-                                          physics: ClampingScrollPhysics(),
-                                          scrollDirection: Axis.vertical,
-                                          children: [
-                                            setRemainders == null ||
-                                                    !setRemainders
-                                                ? SizedBox.shrink()
-                                                : Container(
-                                                    height: 200,
-                                                    child:
-                                                        ShowFlashCardInAppWebViewScreen(
-                                                      webViewHeight: 200,
-                                                    ),
+              elevation: 0.0,
+              highlightElevation: 0.0,
+              backgroundColor: Colors.transparent,
+              child: setLegacy != null && !setLegacy
+                  ? Image.asset(
+                      "assets/images/menu-button-md.png",
+                      fit: BoxFit.cover,
+                      // height: 24, width: 24
+                    )
+                  : SizedBox.shrink(),
+              onPressed: () {
+                FocusScope.of(context).requestFocus(FocusNode());
+                setState(() {
+                  showMenuGridScreen = !showMenuGridScreen;
+                  screenView = buildHomePageGridView(gridList);
+                  //debugPrint("showMenuGridScreen --> $showMenuGridScreen");
+                });
+              },
+            ),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            // Positioned(
+            //     left: 10,
+            //     top: 10,
+            //     child: IconButton(
+            //         icon: Icon(
+            //           Icons.menu,
+            //           color: Colors.black,
+            //         ),
+            //         onPressed: null)),
+            SingleChildScrollView(
+              child: Container(
+                child: ListView(
+                  shrinkWrap: true,
+                  scrollDirection: Axis.vertical,
+                  physics: ClampingScrollPhysics(),
+                  children: [
+                    SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
+                      child: Container(
+                        color: Colors.white,
+                        child: Column(
+                          children: [
+                            GestureDetector(
+                              onDoubleTap: () {
+                                // Navigator.push(context,
+                                //     MaterialPageRoute(builder: (context) => UserRequest()));
+                              },
+                              child: Container(
+                                  width: double.infinity,
+                                  color: Colors.white,
+                                  child: UpperLogoWidget(
+                                    home: true,
+                                    showPoweredBy: true,
+                                    showTitle: AppPreferences().clientId ==
+                                        Constants.GNAT_KEY,
+                                    showVersion: false,
+                                  )),
+                            ),
+                            SizedBox(height: 10.0),
+                            !showMenuGridScreen
+                                ? Container(
+                                    child: ListView(
+                                        padding: EdgeInsets.zero,
+                                        shrinkWrap: true,
+                                        physics: ClampingScrollPhysics(),
+                                        scrollDirection: Axis.vertical,
+                                        children: [
+                                          setRemainders == null ||
+                                                  !setRemainders
+                                              ? SizedBox.shrink()
+                                              : Container(
+                                                  height: 200,
+                                                  child:
+                                                      ShowFlashCardInAppWebViewScreen(
+                                                    webViewHeight: 200,
                                                   ),
-                                            // SampleInAppWebView()),
-                                            SizedBox(height: 10.0),
-                                            // setNewsFeed == null ||
-                                            //         !setNewsFeed
-                                            //     ? SizedBox.shrink()
-                                            //     : Container(
-                                            //         child: Column(children: [
-                                            //           ConstrainedBox(
-                                            //             constraints:
-                                            //                 BoxConstraints(
-                                            //               maxHeight: MediaQuery.of(
-                                            //                           context)
-                                            //                       .size
-                                            //                       .height *
-                                            //                   0.5,
-                                            //             ),
-                                            //             child:
-                                            //                 ShowNewsFeedInAppWebViewScreen(
-                                            //               webViewHeight:
-                                            //                   MediaQuery.of(
-                                            //                               context)
-                                            //                           .size
-                                            //                           .height *
-                                            //                       0.5,
-                                            //             ),
-                                            //           ),
-                                            //           Padding(
-                                            //             padding:
-                                            //                 const EdgeInsets
-                                            //                         .only(
-                                            //                     left: 8.0,
-                                            //                     right: 8.0,
-                                            //                     bottom: 8.0),
-                                            //             child: Row(
-                                            //               mainAxisAlignment:
-                                            //                   MainAxisAlignment
-                                            //                       .spaceBetween,
-                                            //               children: [
-                                            //                 SizedBox(
-                                            //                     width: 10.0,
-                                            //                     height: 8.0),
-                                            //                 InkWell(
-                                            //                   onTap: () {
-                                            //                     Navigator.push(
-                                            //                         context,
-                                            //                         MaterialPageRoute(
-                                            //                             builder: (context) =>
-                                            //                                 NewsFeedScreen()));
-                                            //                   },
-                                            //                   child: Row(
-                                            //                     children: [
-                                            //                       Text(
-                                            //                           "View More",
-                                            //                           style: TextStyle(
-                                            //                               fontWeight:
-                                            //                                   FontWeight.bold,
-                                            //                               color: Colors.blue,
-                                            //                               fontSize: 13)),
-                                            //                       Icon(
-                                            //                           Icons
-                                            //                               .arrow_forward_ios,
-                                            //                           color: Colors
-                                            //                               .blue,
-                                            //                           size:
-                                            //                               16),
-                                            //                     ],
-                                            //                   ),
-                                            //                 ),
-                                            //               ],
-                                            //             ),
-                                            //           )
-                                            //         ]),
-                                            //       ),
-                                            // ShowNewsFeedCard(
-                                            //   setNewsFeed: setNewsFeed,
-                                            // ),
-                                            // setLegacy ? SizedBox.shrink() : SizedBox(height: 25.0),
-                                            // (setRemainders != null && setRemainders) &&
-                                            //         (setNewsFeed == null || !setNewsFeed)
-                                            //     ? SizedBox(
-                                            //         height: 15,
-                                            //       )
-                                            //     : SizedBox(height: 15.0),
+                                                ),
+                                          // SampleInAppWebView()),
+                                          SizedBox(height: 10.0),
+                                          // setNewsFeed == null ||
+                                          //         !setNewsFeed
+                                          //     ? SizedBox.shrink()
+                                          //     : Container(
+                                          //         child: Column(children: [
+                                          //           ConstrainedBox(
+                                          //             constraints:
+                                          //                 BoxConstraints(
+                                          //               maxHeight: MediaQuery.of(
+                                          //                           context)
+                                          //                       .size
+                                          //                       .height *
+                                          //                   0.5,
+                                          //             ),
+                                          //             child:
+                                          //                 ShowNewsFeedInAppWebViewScreen(
+                                          //               webViewHeight:
+                                          //                   MediaQuery.of(
+                                          //                               context)
+                                          //                           .size
+                                          //                           .height *
+                                          //                       0.5,
+                                          //             ),
+                                          //           ),
+                                          //           Padding(
+                                          //             padding:
+                                          //                 const EdgeInsets
+                                          //                         .only(
+                                          //                     left: 8.0,
+                                          //                     right: 8.0,
+                                          //                     bottom: 8.0),
+                                          //             child: Row(
+                                          //               mainAxisAlignment:
+                                          //                   MainAxisAlignment
+                                          //                       .spaceBetween,
+                                          //               children: [
+                                          //                 SizedBox(
+                                          //                     width: 10.0,
+                                          //                     height: 8.0),
+                                          //                 InkWell(
+                                          //                   onTap: () {
+                                          //                     Navigator.push(
+                                          //                         context,
+                                          //                         MaterialPageRoute(
+                                          //                             builder: (context) =>
+                                          //                                 NewsFeedScreen()));
+                                          //                   },
+                                          //                   child: Row(
+                                          //                     children: [
+                                          //                       Text(
+                                          //                           "View More",
+                                          //                           style: TextStyle(
+                                          //                               fontWeight:
+                                          //                                   FontWeight.bold,
+                                          //                               color: Colors.blue,
+                                          //                               fontSize: 13)),
+                                          //                       Icon(
+                                          //                           Icons
+                                          //                               .arrow_forward_ios,
+                                          //                           color: Colors
+                                          //                               .blue,
+                                          //                           size:
+                                          //                               16),
+                                          //                     ],
+                                          //                   ),
+                                          //                 ),
+                                          //               ],
+                                          //             ),
+                                          //           )
+                                          //         ]),
+                                          //       ),
+                                          // ShowNewsFeedCard(
+                                          //   setNewsFeed: setNewsFeed,
+                                          // ),
+                                          // setLegacy ? SizedBox.shrink() : SizedBox(height: 25.0),
+                                          // (setRemainders != null && setRemainders) &&
+                                          //         (setNewsFeed == null || !setNewsFeed)
+                                          //     ? SizedBox(
+                                          //         height: 15,
+                                          //       )
+                                          //     : SizedBox(height: 15.0),
 
-                                            // setRemainders == true && setNewsFeed == false
-                                            //     ? SizedBox(height: 15.0)
-                                            //     : Container(),
-                                            // const SizedBox(
-                                            //   height: 8,
-                                            // ),
-                                            setLegacy != null && setLegacy
-                                                ? Container(
-                                                    color: Colors.white,
-                                                    child: menuGridBuilder())
-                                                : Container(),
-                                          ]),
-                                    )
-                                  : Container(),
-                              showMenuGridScreen
-                                  ? Container(
-                                      color: Colors.white,
-                                      child: menuGridBuilder())
-                                  : SizedBox.shrink(),
-                              SizedBox(height: 20)
-                            ],
-                          ),
+                                          // setRemainders == true && setNewsFeed == false
+                                          //     ? SizedBox(height: 15.0)
+                                          //     : Container(),
+                                          // const SizedBox(
+                                          //   height: 8,
+                                          // ),
+                                          setLegacy != null && setLegacy
+                                              ? Container(
+                                                  color: Colors.white,
+                                                  child: menuGridBuilder())
+                                              : Container(),
+                                        ]),
+                                  )
+                                : Container(),
+                            showMenuGridScreen
+                                ? Container(
+                                    color: Colors.white,
+                                    child: menuGridBuilder())
+                                : SizedBox.shrink(),
+                            SizedBox(height: 20)
+                          ],
                         ),
                       ),
+                    ),
 
-                      /// Show Banner Ad
-                      //   getSivisoftAdWidget(),
-                    ],
-                  ),
+                    /// Show Banner Ad
+                    //   getSivisoftAdWidget(),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ));
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget menuGridBuilder() {
-    print(menu_grid_launcher_icon_id);
+    // print(menu_grid_launcher_icon_id);
     switch (menu_grid_launcher_icon_id) {
       case 0:
         return menuBuilderType1();
@@ -781,137 +883,88 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
     }
   }
 
-  Widget menuBuilderType1() {
-    return gridList.length == 1
-        ? Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(5.0),
-                  child: Material(
-                    elevation: 5.0,
-                    // shadowColor: Colors.grey[800],
+  String totalCounts = "";
+  totalCountsCall() async {
+    String url1 = "${WebserviceConstants.baseFilingURL}" +
+        "/GetVaccinationQrScanCount?login_user=${AppPreferences().username}&role=${AppPreferences().role}";
+    print(url1);
+    String url =
+        "https://qa.servicedx.com/filing/GetVaccinationQrScanCount?login_user=${AppPreferences().username}&role=${AppPreferences().role}";
+    print(url);
+    var response = await http.get(url);
+    print(response.body);
+    print(response.statusCode);
+    if (mounted)
+      setState(() {
+        totalCounts = response.body.toString().contains("error")
+            ? "Error"
+            : response.body.toString();
+      });
+  }
 
-                    color: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0)),
-                    child: Container(
-                      height: MediaQuery.of(context).size.height * 0.14,
-                      width: MediaQuery.of(context).size.width * 0.20,
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          // boxShadow: [
-                          //   BoxShadow(
-                          //     color: Colors.white.withOpacity(0.2),
-                          //     spreadRadius: 15,
-                          //     blurRadius: 10,
-                          //     offset: Offset(3, 3),
-                          //   ),
-                          // ],
-                          // border: Border.all(color: Colors.white),
-                          borderRadius: BorderRadius.circular(10)),
-                      child: InkWell(
-                        // borderRadius: BorderRadius.circular(16),
-                        onTap: () async {
-                          // Navigator.pop(context);
-                          // debugPrint(
-                          //     'Grid List label name: ${gridList[index].labelName}');
-                          // print(gridList[index].externalUrl);
-                          selectedLabel = gridList[0].labelName;
-                          // print(e.labelName);
-                          // print(e.imageName);
+  Widget menuBuilderType1() {
+    if (gridList.length == 1) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            // Text(totalCounts),
+            SizedBox(height: 100,),
+            Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: Container(
+                height: 200,
+                width: 150,
+                child: Material(
+                  elevation: 5.0,
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0)),
+                  child: Container(
+                    height: MediaQuery.of(context).size.height * 0.15,
+                    width: MediaQuery.of(context).size.width * 0.20,
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10)),
+                    child: InkWell(
+                      onTap: () async {
+                        selectedLabel = gridList[0].labelName;
+                        print(gridList[0].labelName);
+                        print(gridList[0].index);
+                        print(gridList[0].imageName);
+                        var connectivityResult =
+                            await (Connectivity().checkConnectivity());
+                        if (connectivityResult == ConnectivityResult.mobile ||
+                            connectivityResult == ConnectivityResult.wifi) {
                           if (gridList[0].externalUrl == null ||
                               gridList[0].externalUrl == "")
                             changeIndex(gridList[0].index);
                           else
                             await _launchExternalURL(gridList[0].externalUrl);
-                        },
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: <Widget>[
-                            const SizedBox(
-                              height: 15,
-                            ),
-                            if (gridList[0].imageName != null)
-                              getBuilderImage(gridList[0].imageName),
-                            Expanded(
-                              child: Container(
-                                // color: Colors.red,
-                                child: Center(
-                                  child: Text(gridList[0].labelName,
-                                      maxLines: 2,
-                                      style: AppPreferences().isLanguageTamil()
-                                          ? TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.indigo,
-                                              fontWeight: FontWeight.bold)
-                                          : /* TextStyle(
-                                      fontSize: 10,
-                                      fontFamily: "Vernada",
-                                      color: Colors.black54,
-                                      fontWeight: FontWeight.bold), */
-                                          GoogleFonts.montserrat(
-                                              textStyle: TextStyle(
-                                                  fontSize: 10,
-                                                  color: Colors.grey[600],
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                      textAlign: TextAlign.center),
-                                ),
+                        } else {
+                          await showDialog(
+                            context: context,
+                            builder: (BuildContext context) => WillPopScope(
+                              onWillPop: () async => true,
+                              child: CupertinoAlertDialog(
+                                title: Text("No Internet connection"),
+                                content: Text(
+                                    "Your device is currently not connected to the internet, Please check your internet connectivity and try again."),
+                                actions: [
+                                  CupertinoDialogAction(
+                                    // isDefaultAction: true,
+                                    child: Text('Ok'),
+                                    onPressed: () async {
+                                      debugPrint("notification pressed ios");
+                                      Navigator.pop(context);
+                                      // exit(0);
+                                    },
+                                  )
+                                ],
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                )
-              ],
-            ),
-          )
-        : Center(
-            child: Wrap(
-                children: gridList.map((e) {
-              return Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Material(
-                  elevation: 5.0,
-                  // shadowColor: Colors.grey[800],
-
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0)),
-                  child: Container(
-                    height: MediaQuery.of(context).size.height * 0.14,
-                    width: MediaQuery.of(context).size.width * 0.20,
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        // boxShadow: [
-                        //   BoxShadow(
-                        //     color: Colors.white.withOpacity(0.2),
-                        //     spreadRadius: 15,
-                        //     blurRadius: 10,
-                        //     offset: Offset(3, 3),
-                        //   ),
-                        // ],
-                        // border: Border.all(color: Colors.white),
-                        borderRadius: BorderRadius.circular(10)),
-                    child: InkWell(
-                      // borderRadius: BorderRadius.circular(16),
-                      onTap: () async {
-                        // Navigator.pop(context);
-                        // debugPrint(
-                        //     'Grid List label name: ${gridList[index].labelName}');
-                        // print(gridList[index].externalUrl);
-                        selectedLabel = e.labelName;
-                        // print(e.labelName);
-                        // print(e.imageName);
-                        if (e.externalUrl == null || e.externalUrl == "")
-                          changeIndex(e.index);
-                        else
-                          await _launchExternalURL(e.externalUrl);
+                          );
+                        }
                       },
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -919,26 +972,22 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
                           const SizedBox(
                             height: 15,
                           ),
-                          if (e.imageName != null) getBuilderImage(e.imageName),
+                          if (gridList[0].imageName != null)
+                            getBuilderImage1(gridList[0].imageName),
                           Expanded(
                             child: Container(
                               // color: Colors.red,
                               child: Center(
-                                child: Text(e.labelName,
+                                child: Text(gridList[0].labelName,
                                     maxLines: 2,
                                     style: AppPreferences().isLanguageTamil()
                                         ? TextStyle(
-                                            fontSize: 12,
+                                            fontSize: 30,
                                             color: Colors.indigo,
                                             fontWeight: FontWeight.bold)
-                                        : /* TextStyle(
-                                      fontSize: 10,
-                                      fontFamily: "Vernada",
-                                      color: Colors.black54,
-                                      fontWeight: FontWeight.bold), */
-                                        GoogleFonts.montserrat(
+                                        : GoogleFonts.montserrat(
                                             textStyle: TextStyle(
-                                                fontSize: 10,
+                                                fontSize: 30,
                                                 color: Colors.grey[600],
                                                 fontWeight: FontWeight.bold),
                                           ),
@@ -951,9 +1000,125 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
                     ),
                   ),
                 ),
-              );
-            }).toList()),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return Center(
+        child: Wrap(
+            children: gridList.map((e) {
+          return Padding(
+            padding: const EdgeInsets.all(5.0),
+            child: Material(
+              elevation: 5.0,
+              // shadowColor: Colors.grey[800],
+
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0)),
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.14,
+                width: MediaQuery.of(context).size.width * 0.20,
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    // boxShadow: [
+                    //   BoxShadow(
+                    //     color: Colors.white.withOpacity(0.2),
+                    //     spreadRadius: 15,
+                    //     blurRadius: 10,
+                    //     offset: Offset(3, 3),
+                    //   ),
+                    // ],
+                    // border: Border.all(color: Colors.white),
+                    borderRadius: BorderRadius.circular(10)),
+                child: InkWell(
+                  // borderRadius: BorderRadius.circular(16),
+                  onTap: () async {
+                    // Navigator.pop(context);
+                    // debugPrint(
+                    //     'Grid List label name: ${gridList[index].labelName}');
+                    // print(gridList[index].externalUrl);
+                    selectedLabel = e.labelName;
+                    print(e.labelName);
+                    print(e.index);
+                    print(e.imageName);
+                    var connectivityResult =
+                        await (Connectivity().checkConnectivity());
+                    if (connectivityResult == ConnectivityResult.mobile ||
+                        connectivityResult == ConnectivityResult.wifi) {
+                      if (e.externalUrl == null || e.externalUrl == "")
+                        changeIndex(e.index);
+                      else
+                        await _launchExternalURL(e.externalUrl);
+                    } else {
+                      await showDialog(
+                        context: context,
+                        builder: (BuildContext context) => WillPopScope(
+                          onWillPop: () async => true,
+                          child: CupertinoAlertDialog(
+                            title: Text("No Internet connection"),
+                            content: Text(
+                                "Your device is currently not connected to the internet, Please check your internet connectivity and try again."),
+                            actions: [
+                              CupertinoDialogAction(
+                                // isDefaultAction: true,
+                                child: Text('Ok'),
+                                onPressed: () async {
+                                  debugPrint("notification pressed ios");
+                                  Navigator.pop(context);
+                                  // exit(0);
+                                },
+                              )
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      const SizedBox(
+                        height: 15,
+                      ),
+                      if (e.imageName != null) getBuilderImage(e.imageName),
+                      Expanded(
+                        child: Container(
+                          // color: Colors.red,
+                          child: Center(
+                            child: Text(e.labelName,
+                                maxLines: 2,
+                                style: AppPreferences().isLanguageTamil()
+                                    ? TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.indigo,
+                                        fontWeight: FontWeight.bold)
+                                    : /* TextStyle(
+                                      fontSize: 10,
+                                      fontFamily: "Vernada",
+                                      color: Colors.black54,
+                                      fontWeight: FontWeight.bold), */
+                                    GoogleFonts.montserrat(
+                                        textStyle: TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.grey[600],
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                textAlign: TextAlign.center),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           );
+        }).toList()),
+      );
+    }
   }
 
   Widget menuBuilderType2() {
@@ -1352,6 +1517,32 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
           }).toList()),
     );
   }
+  Widget getBuilderImage1(image, {double height = 110.0, width = 110.0}) {
+    return image.startsWith('http')
+        ? Image.network(
+            image,
+            /* width: gridList[index].index ==
+                                     Constants.PAGE_ID_PEOPLE_LIST
+                                      ? 20
+                                      : 20,
+                                      height: 20.0, */
+            height: height,
+            width: width,
+            cacheHeight: height.toInt(),
+            cacheWidth: width.toInt(),
+            // alignment: Alignment.topCenter,
+          )
+        : Image.asset(
+            image,
+            /* width: gridList[index].index ==
+                                 Constants.PAGE_ID_PEOPLE_LIST
+                                  ? 20
+                                  : 20,
+                                    height: 20.0, */
+            height: height, width: width,
+            // alignment: Alignment.topCenter,
+          );
+  }
 
   Widget getBuilderImage(image, {double height = 25.0, width = 25.0}) {
     return image.startsWith('http')
@@ -1418,8 +1609,6 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
     bool hasLoggedInSupervisor =
         (AppPreferences().role == Constants.supervisorRole);
     UserInfo user = AppPreferences().userInfo;
-    // print("User Role:::::");
-    // print(user.tempUserSubType);
     for (int i = 0;
         i <
             (hasLoggedInSupervisor
@@ -1443,7 +1632,6 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
           );
         }
       } else {
-        // print(value.menuInfo.uSER[i].label);
         if (value.menuInfo.uSER[i].status == 'active') {
           if (AppPreferences().userMemberShipType == LIFE &&
               value.menuInfo.uSER[i].pageId == Constants.PAGE_ID_MEMBERSHIP) {
@@ -1523,8 +1711,6 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
       drawerList
           .remove(DrawerList(index: Constants.PAGE_ID_Home_Nusrsing_Service));
     }
-    // Constants.PAGE_ID_CALLUS:
-    // drawerList.remove(DrawerList(index: Constants.PAGE_ID_CALLUS));
 
     if (Constants.SETTINGS_ENABLED) {
       drawerList.add(
@@ -1555,8 +1741,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
     if (gridList.isNotEmpty) {
       gridList.removeAt(0);
     }
-// Constants.PAGE_ID_CALLUS
-    // gridList.removeWhere((ele) => ele.index == Constants.PAGE_ID_CALLUS);
+
     if (gridList.isNotEmpty) {
       gridList.removeLast();
     }
@@ -1619,31 +1804,67 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
                           ? Constants.PAGE_ID_HOME
                           : widget.drawerIndex,
                   drawerWidth: MediaQuery.of(context).size.width * 0.75,
-                  onDrawerCall: (int drawerIndexdata) {
+                  onDrawerCall: (int drawerIndexdata) async {
                     // debugPrint("Menu tap --> $drawerIndexdata");
                     // debugPrint("Menu screenIndex --> ${widget.drawerIndex}");
 
-                    if (drawerIndexdata == Constants.PAGE_ID_HOME ||
-                        drawerIndexdata == Constants.PAGE_ID_SETTINGS) {
-                      changeIndex(drawerIndexdata);
-                    } else if (drawerIndexdata != null &&
-                        drawerIndexdata != 0) {
-                      gridList.forEach((element) {
-                        if (element.index == drawerIndexdata) {
-                          selectedLabel = element.labelName;
-                          changeIndex(drawerIndexdata);
-                        }
-                      });
-                    } else {
-                      gridList.forEach((element) {
-                        if (element.externalUrl != null) {
+                    // Navigator.pop(context);
+                    // debugPrint(
+                    //     'Grid List label name: ${gridList[index].labelName}');
+                    // print(gridList[index].externalUrl);
+
+                    // print(e.labelName);
+                    // print(e.imageName);
+                    var connectivityResult =
+                        await (Connectivity().checkConnectivity());
+                    if (connectivityResult == ConnectivityResult.mobile ||
+                        connectivityResult == ConnectivityResult.wifi) {
+                      if (drawerIndexdata == Constants.PAGE_ID_HOME ||
+                          drawerIndexdata == Constants.PAGE_ID_SETTINGS) {
+                        changeIndex(drawerIndexdata);
+                      } else if (drawerIndexdata != null &&
+                          drawerIndexdata != 0) {
+                        gridList.forEach((element) {
                           if (element.index == drawerIndexdata) {
                             selectedLabel = element.labelName;
-                            _launchExternalURL(element.externalUrl);
+                            changeIndex(drawerIndexdata);
                           }
-                        }
-                      });
+                        });
+                      } else {
+                        gridList.forEach((element) {
+                          if (element.externalUrl != null) {
+                            if (element.index == drawerIndexdata) {
+                              selectedLabel = element.labelName;
+                              _launchExternalURL(element.externalUrl);
+                            }
+                          }
+                        });
+                      }
+                    } else {
+                      await showDialog(
+                        context: context,
+                        builder: (BuildContext context) => WillPopScope(
+                          onWillPop: () async => true,
+                          child: CupertinoAlertDialog(
+                            title: Text("No Internet connection"),
+                            content: Text(
+                                "Your device is currently not connected to the internet, Please check your internet connectivity and try again."),
+                            actions: [
+                              CupertinoDialogAction(
+                                // isDefaultAction: true,
+                                child: Text('Ok'),
+                                onPressed: () async {
+                                  debugPrint("notification pressed ios");
+                                  Navigator.pop(context);
+                                  // exit(0);
+                                },
+                              )
+                            ],
+                          ),
+                        ),
+                      );
                     }
+
                     //changeIndex(drawerIndexdata);
                     //callback from drawer for replace screen as user need with passing DrawerIndex(Enum index)
                   },
@@ -1715,7 +1936,8 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
       case Constants.PAGE_ID_ADD_FAMILY:
         break;
       case Constants.PAGE_ID_PEOPLE_LIST:
-        screenView = PeopleListPage(
+        screenView = //INtroSlides();
+            PeopleListPage(
           title: selectedLabel,
           isCameFromCoping: false,
           actionBloc: actionPeopleBloc,
@@ -1746,58 +1968,12 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
       case Constants.PAGE_ID_SUPPORT:
         screenView = SupportWidget(title: selectedLabel);
         break;
-      case Constants.PAGE_ID_TOBEMEMBER:
-        UserInfo user = AppPreferences().userInfo;
-        UserInfoMemberShipObject obj;
-        if (user.membershipEntitlements == null ||
-            user.membershipEntitlements.isEmpty ||
-            user.membershipEntitlements == {}) {
-          obj = null;
-        } else {
-          obj = UserInfoMemberShipObject(
-              membershipId: user.membershipEntitlements["membershipId"],
-              membershipStatus: user.membershipEntitlements["membershipStatus"],
-              approvedDate: user.membershipEntitlements["approvedDate"],
-              gender: user.gender,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              expiryDate: user.membershipEntitlements["expiryDate"]);
-        }
-        screenView = UserInfoTabInappWebview(
-          superProfile: false,
-          userName: user.userName,
-          departmentName: user.departmentName,
-          clientId: AppPreferences().clientId,
-          title: selectedLabel,
-          membershipInfo: obj,
-        );
-        break;
-
-      case Constants.PAGE_ID_CALLUS:
-        // print(
-        //     "${AppPreferences().hostUrl}/sites/${AppPreferences().siteNavigator}/user_member_editorial.html?");
-        screenView = CallUs(title: selectedLabel);
-        // screenView = FingerprintPage();
-        // _launchExternalURL(
-        //     "https://qa-memberly.github.io/qa/sites/DATT/ContactUs.html");
-        // await call.canLaunch("tel://1868 607 3288");
-        break;
-
-      case Constants.PAGE_ID_QRCODE:
-        screenView = QRScanPage(
-          title: selectedLabel,
-        );
-        // screenView = CallUs(title: selectedLabel);
-        break;
-
       case Constants.PAGE_PERSONAL_INFORMATION:
         // screenView = PersonalTabbedInfoScreen(
         //   actionBloc: actionBloc,
         // );
 
         UserInfo user = AppPreferences().userInfo;
-
-        bool superProfile = true;
 
         UserInfoValidationBloc ailmentBloc;
         ailmentBloc = UserInfoValidationBloc(context);
@@ -1808,8 +1984,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
             enableDrag: false,
             notification: NewNotification(type: "Profile"),
             backgroundColor: Colors.transparent,
-            builder: (context) =>
-                UserProfileBottomSheet(user, ailmentBloc, superProfile),
+            builder: (context) => UserProfileBottomSheet(user, ailmentBloc),
             profileImage: user.profileImage);
         break;
       case Constants.PAGE_ID_HIERARCHICAL:
@@ -1936,6 +2111,7 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
         break;
       case Constants.PAGE_ID_Doctor_Schedule:
         // print("category is" + AppPreferences().userCategory);
+        print(AppPreferences().userCategory);
         AppPreferences().userCategory.toUpperCase() == "DOCTOR" ||
                 AppPreferences().userCategory.toUpperCase() == "CONSULTANT"
             ? screenView = DoctorSchedulerScreen(title: selectedLabel)
@@ -2010,9 +2186,20 @@ class _NavigationHomeScreenState extends State<NavigationHomeScreen>
         );
         break;
 
+      case Constants.PAGE_ID_QRCODE:
+        screenView = QRScanPage();
+        break;
+
       case Constants.PAGE_ID_Patient_Assessment:
         AppPreferences().userCategory.toUpperCase() != "DOCTOR"
-            ? screenView = AssessmentHistory(selectedLabel)
+            ? screenView = AssessmentHistory(
+                selectedLabel,
+                username: AppPreferences().username,
+                departmentName: AppPreferences().deptmentName,
+                email: AppPreferences().email,
+                phoneNo: AppPreferences().phoneNo,
+                showFab: true,
+              )
             : SizedBox.shrink();
         /* 
           screenView = MembershipInappWebviewScreen(
@@ -2711,6 +2898,8 @@ class CustomScrollPhysics extends ScrollPhysics {
   @override
   bool get allowImplicitScrolling => false;
 }
+
+await(Future<ConnectivityResult> checkConnectivity) {}
 
 /* class menuGridBuilder extends StatefulWidget {
   final List<DrawerList> gridList;
